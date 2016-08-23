@@ -1,0 +1,34 @@
+<prog>               ::= <function> | <let> | <label> | <local> | <semaphore> | <block>
+
+<function>           ::= '\'         <ident>+           '->' <prog>
+<let>                ::= 'let'       <ident> '=' <expr> 'in' <prog>
+<local>              ::= 'new'       <ident>            'in' <prog>
+<label>              ::= 'label'     <ident>            'in' <prog>
+<semaphore>          ::= 'semaphore' <ident>            'in' <prog>
+
+<block>              ::= <instruction> | <instruction> ';' <block>
+<instruction>        ::= <simple_instruction> | <while_statement>
+<while_statement>    ::= 'while' <boolean_expr> 'do' <simple_instruction>
+<simple_instruction> ::= <command> | <command> '|||' <simple_instruction>
+<command>            ::= <expr> | <expr> ':=' <expr> | 'break' <expr> | 'continue' <expr> | 'grab' <expr> | 'release' <expr>
+
+<expr>               ::= <boolean_expr> |  <if_statement>
+<if_statement>       ::= 'if' <boolean_expr> 'then' <expr> 'else' <expr>
+
+<boolean_expr>       ::= <disjunct> | <disjunct> '||' <disjunct>
+<disjunct>           ::= <conjunct> | <conjunct> '&&' <conjunct>
+<conjunct>           ::= <arithm_expr> | <arithm_expr> '==' <arithm_expr> | <arithm_expr> '!=' <arithm_expr>
+                       | <arithm_expr> '<' <arithm_expr> | <arithm_expr> '>' <arithm_expr>
+
+<arithm_expr>        ::= <addend> | <addend> '+' <addend> | <addend> '-' <addend>
+<addend>             ::= <multiplier> | <multiplier> '*' <multiplier> | <multiplier> '/' <multiplier> | <multiplier> '%' <multiplier>
+
+<multiplier>         ::= <factor> | <factor> <addend>
+<factor>     		 ::= <inner> | '!' <inner>
+<inner>      		 ::= <ident> | <number> | 'True' | 'False' | 'fix' | '(' <prog> ')'
+
+<ident>              ::= <alpha> | <alpha> <ident>
+<number>             ::= <digit> | <digit> <number>
+
+<alpha> 			 ::= 'a' | ... | 'z' | 'A' | ... | 'Z'
+<digit> 			 ::= '0' | ... | '9'
