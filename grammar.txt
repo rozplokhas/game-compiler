@@ -24,11 +24,11 @@
 <addend>             ::= <multiplier> | <multiplier> '*' <multiplier> | <multiplier> '/' <multiplier> | <multiplier> '%' <multiplier>
 
 <multiplier>         ::= <factor> | <factor> <addend>
-<factor>     		 ::= <inner> | '!' <inner>
-<inner>      		 ::= <ident> | <number> | 'True' | 'False' | 'fix' | '(' <prog> ')'
+<factor>             ::= <inner> | '!' <inner>
+<inner>              ::= <ident> | <number> | 'True' | 'False' | 'fix' | '(' <prog> ')'
 
 <ident>              ::= <alpha> | <alpha> <ident>
 <number>             ::= <digit> | <digit> <number>
 
-<alpha> 			 ::= 'a' | ... | 'z' | 'A' | ... | 'Z'
-<digit> 			 ::= '0' | ... | '9'
+<alpha>              ::= 'a' | ... | 'z' | 'A' | ... | 'Z'
+<digit>              ::= '0' | ... | '9'
