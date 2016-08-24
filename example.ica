@@ -1,11 +1,10 @@
-let pow = (\x n ->
+let pow = \x n ->
     new i   in
     new res in
     res := 1;
     while !i do (
         res := res * x;
         i := i - 1
-    )
 ) in
 
 pow 2 10

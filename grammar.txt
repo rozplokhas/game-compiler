@@ -1,7 +1,7 @@
 <prog>               ::= <function> | <let> | <label> | <local> | <semaphore> | <block>
 
 <function>           ::= '\'         <ident>+           '->' <prog>
-<let>                ::= 'let'       <ident> '=' <expr> 'in' <prog>
+<let>                ::= 'let'       <ident> '=' <prog> 'in' <prog>
 <local>              ::= 'new'       <ident>            'in' <prog>
 <label>              ::= 'label'     <ident>            'in' <prog>
 <semaphore>          ::= 'semaphore' <ident>            'in' <prog>

@@ -101,7 +101,7 @@ nipAbs s = do
 nipLet :: Nip
 nipLet s = do
     (TWord "let" : TWord x : TOp "=" : s1) <- return s
-    (e, s2) <- nipExpr s1
+    (e, s2) <- nipProg s1
     (TWord "in" : s3) <- return s2
     (t, r) <- nipProg s3
     return (App (Abs x t) e, r)

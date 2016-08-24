@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
+
 import           Control.Monad.State.Lazy
 import           Data.Char                (isDigit)
 import qualified Data.Map                 as M
@@ -56,11 +58,11 @@ wireByType (Arrow t1 t2) = do
     return (WArrow w1 w2)
 
 createTransducer :: TransducerGoal -> Signature -> Env Transducer
-createTransducer goal sig@(Signature ts t) = do
-    idNum <- getFreshInt
+createTransducer g sig@(Signature ts t) = do
+    idN <- getFreshInt
     outw <- wireByType t
     inw <- mapM wireByType ts
-    return $ Transducer idNum sig goal inw outw
+    return $ Transducer idN sig g inw outw
 
 
 code :: Transducer -> String
