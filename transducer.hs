@@ -1,50 +1,8 @@
-{-# OPTIONS_GHC -fno-warn-incomplete-patterns #-}
+module Transducer where
 
-import           Control.Monad.State.Lazy
-import           Data.Char                (isDigit)
-import qualified Data.Map                 as M
-import           Text.Printf
+import Definitions
 
-
-data Type = N | Times Type Type | Arrow Type Type deriving (Eq, Show)
-data Signature = Signature [Type] Type deriving (Eq, Show)
-
-type Label = String
-
-type Port = (Label, Label)
-data Wire = WPort Port | WTimes Wire Wire | WArrow Wire Wire deriving (Eq, Show)
-
-type TransducerGoal = String
-data Transducer = Transducer {
-                    idNum      :: Int,
-                    signature  :: Signature,
-                    goal       :: TransducerGoal,
-                    inputWires :: [Wire],
-                    outputWire :: Wire
-                  } deriving (Eq, Show)
-
-type Env = State (Int, [String])
-
-allStrings :: [String]
-allStrings = concat $ tail $ iterate (\l -> (:) <$> letters <*> l) [""]
-    where letters = ['a'..'z']
-
-initEnv :: (Int, [String])
-initEnv = (0, allStrings)
-
-getFreshInt :: Env Int
-getFreshInt = do
-    (n, s) <- get
-    put (n + 1, s)
-    return n
-
-getFreshString :: Env String
-getFreshString = do
-    (n, s : ss) <- get
-    put (n, ss)
-    return s
-
-wireByType :: Type -> Env Wire
+wireByType :: Type -> EvalState Wire
 wireByType N = do
     s <- getFreshString
     return $ WPort ('q' : s, 'n' : s)
@@ -57,82 +15,11 @@ wireByType (Arrow t1 t2) = do
     w2 <- wireByType t2
     return (WArrow w1 w2)
 
-createTransducer :: TransducerGoal -> Signature -> Env Transducer
-createTransducer g sig@(Signature ts t) = do
-    idN <- getFreshInt
+createTransducer :: TransducerDescr -> EvalState Transducer
+createTransducer (printer, Signature ts t) = do
     outw <- wireByType t
     inw <- mapM wireByType ts
-    return $ Transducer idN sig g inw outw
+    return $ Transducer inw outw printer
 
-
-code :: Transducer -> String
-code t@(Transducer {goal = g}) | not (null g) && isDigit (head g) = numberCode g t
-                               | otherwise                        = (codePrinters M.! g) t
-
-codePrinters :: M.Map TransducerGoal (Transducer -> String)
-codePrinters = M.fromList [("add", binOpCode "+"),
-                           ("sub", binOpCode "-"),
-                           ("mul", binOpCode "*"),
-                           ("seq", seqCode),
-                           ("if", ifCode),
-                           ("while", whileCode)]
-
-numberCode :: String -> Transducer -> String
-numberCode d Transducer{outputWire = WPort (q, n)} = printf "\
-\%s:\n\
-\   acc = %s;\n\
-\   goto %s;\n" q d n
-
-localX :: Int -> String
-localX n = "x" ++ show n
-
-binOpCode :: String -> Transducer -> String
-binOpCode op Transducer{idNum = i, outputWire = WArrow (WTimes (WPort (qx, nx)) (WPort (qy, ny))) (WPort (qr, nr))} =
-    let loc = localX i
-    in printf "\
-\%s:\n\
-\    goto %s;\n\
-\%s:\n\
-\    %s = acc;\n\
-\    goto %s;\n\
-\%s:\n\
-\    acc = acc %s %s;\n\
-\    goto %s;\n" qr qx nx loc qy ny op loc nr
-
-seqCode :: Transducer -> String
-seqCode Transducer{outputWire = WArrow (WTimes (WPort (qx, nx)) (WPort (qy, ny))) (WPort (qr, nr))} =
-    printf "\
-\%s:\n\
-\    goto %s;\n\
-\%s:\n\
-\    goto %s;\n\
-\%s:\n\
-\    goto %s;\n" qr qx nx qy ny nr
-
-ifCode :: Transducer -> String
-ifCode Transducer{outputWire = WArrow (WTimes (WTimes (WPort (qc, nc)) (WPort (qt, nt))) (WPort (qf, nf))) (WPort (qr, nr))} =
-    printf "\
-\%s:\n\
-\    goto %s;\n\
-\%s:\n\
-\    if (acc == 0)\n\
-\       goto %s;\n\
-\    else\n\
-\       goto %s;\n\
-\%s:\n\
-\    goto %s;\n\
-\%s:\n\
-\    goto %s;\n" qr qc nc qt qf nt nr nf nr
-
-whileCode :: Transducer -> String
-whileCode Transducer{outputWire = WArrow (WTimes (WPort (qc, nc)) (WPort (qa, na))) (WPort (qr, nr))} =
-    printf "\
-\%s:\n\
-\    goto %s;\n\
-\%s:\n\
-\    if (acc == 0)\n\
-\       goto %s;\n\
-\    else\n\
-\       goto %s;\n\
-\%s:\n\
-\    goto %s;\n" qr qc nc qa nr na qc
+generateCode :: Transducer -> String
+generateCode tr = (code tr) tr ""

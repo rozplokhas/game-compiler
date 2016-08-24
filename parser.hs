@@ -1,5 +1,8 @@
-import Data.Char (isAlpha, isDigit)
-import Control.Applicative
+module Parser (parse) where
+
+import           Control.Applicative ((<|>))
+import           Data.Char           (isAlpha, isDigit)
+import           Definitions         (AST (..))
 
 operators :: String
 operators = "+-*/%><()!;=\\"
@@ -31,35 +34,11 @@ tokenize' str@(c : cs) | c `elem` operators = TOp [c] : tokenize cs
     (i, is) = span isDigit str
     (s, ss) = span isAlpha str
 
-
-
-data AST = Var String
-         | App AST AST
-         | Abs String AST
-         | IfThenElse AST AST AST
-         | BConst Bool
-         | IConst Int
-         | Fix
-         | BinOp String AST AST
-         | Local String AST
-         | Ref AST
-         | Assign AST AST
-         | Sequential AST AST
-         | Label String AST
-         | Break AST
-         | Continue AST
-         | While AST AST
-         | Parallel AST AST
-         | Semaphore String AST
-         | Grab AST
-         | Release AST
-         deriving (Eq, Show)
-
 type Nip = [Token] -> Maybe (AST, [Token])
 
 -- returns (unfoldr go ini, last (failed) ini)
 unfoldrPlus :: (b -> Maybe (a, b)) -> b -> ([a], b)
-unfoldrPlus go ini = case go ini of Nothing     -> ([], ini) 
+unfoldrPlus go ini = case go ini of Nothing     -> ([], ini)
                                     Just (a, b) -> let (xs, r) = unfoldrPlus go b in (a : xs, r)
 
 collect :: [String] -> (String -> AST -> AST -> AST) -> Nip -> Nip
@@ -79,8 +58,8 @@ oneOf :: [Nip] -> Nip
 oneOf xs s = foldr1 (<|>) $ map ($ s) xs
 
 withoutSugar :: [Token] -> [Token]
-withoutSugar = helper False 
-    where 
+withoutSugar = helper False
+    where
         helper _ [] = []
         helper False (TOp "\\" : ts) = helper True ts
         helper False (t : ts) = t : helper False ts
@@ -229,7 +208,7 @@ nipInner = oneOf [nipInt, nipBool, nipFix, nipInnerProg, nipVal]
 nipVal :: Nip
 nipVal s = do
     (TWord x : r) <- return s
-    False <- return $ x `elem` forbiddenNames 
+    False <- return $ x `elem` forbiddenNames
     return (Var x, r)
 
 nipBool :: Nip
@@ -238,7 +217,7 @@ nipBool s = do
     if w == "True"
         then return (BConst True, r)
         else if w == "False"
-            then return (BConst False, r) 
+            then return (BConst False, r)
             else fail ""
 
 nipInt :: Nip
