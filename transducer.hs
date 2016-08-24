@@ -70,10 +70,15 @@ code t@(Transducer {goal = g}) | not (null g) && isDigit (head g) = numberCode g
                                | otherwise                        = (codePrinters M.! g) t
 
 codePrinters :: M.Map TransducerGoal (Transducer -> String)
-codePrinters = M.fromList [("add", addCode)]
+codePrinters = M.fromList [("add", binOpCode "+"),
+                           ("sub", binOpCode "-"),
+                           ("mul", binOpCode "*"),
+                           ("seq", seqCode),
+                           ("if", ifCode),
+                           ("while", whileCode)]
 
 numberCode :: String -> Transducer -> String
-numberCode d Transducer {outputWire = WPort (q, n)} = printf "\
+numberCode d Transducer{outputWire = WPort (q, n)} = printf "\
 \%s:\n\
 \   acc = %s;\n\
 \   goto %s;\n" q d n
@@ -81,8 +86,8 @@ numberCode d Transducer {outputWire = WPort (q, n)} = printf "\
 localX :: Int -> String
 localX n = "x" ++ show n
 
-addCode :: Transducer -> String
-addCode Transducer {idNum = i, outputWire = WArrow (WTimes (WPort (qx, nx)) (WPort (qy, ny))) (WPort (qr, nr))} =
+binOpCode :: String -> Transducer -> String
+binOpCode op Transducer{idNum = i, outputWire = WArrow (WTimes (WPort (qx, nx)) (WPort (qy, ny))) (WPort (qr, nr))} =
     let loc = localX i
     in printf "\
 \%s:\n\
@@ -91,5 +96,43 @@ addCode Transducer {idNum = i, outputWire = WArrow (WTimes (WPort (qx, nx)) (WPo
 \    %s = acc;\n\
 \    goto %s;\n\
 \%s:\n\
-\    acc = acc + %s;\n\
-\    goto %s;\n" qr qx nx loc qy ny loc nr
+\    acc = acc %s %s;\n\
+\    goto %s;\n" qr qx nx loc qy ny op loc nr
+
+seqCode :: Transducer -> String
+seqCode Transducer{outputWire = WArrow (WTimes (WPort (qx, nx)) (WPort (qy, ny))) (WPort (qr, nr))} =
+    printf "\
+\%s:\n\
+\    goto %s;\n\
+\%s:\n\
+\    goto %s;\n\
+\%s:\n\
+\    goto %s;\n" qr qx nx qy ny nr
+
+ifCode :: Transducer -> String
+ifCode Transducer{outputWire = WArrow (WTimes (WTimes (WPort (qc, nc)) (WPort (qt, nt))) (WPort (qf, nf))) (WPort (qr, nr))} =
+    printf "\
+\%s:\n\
+\    goto %s;\n\
+\%s:\n\
+\    if (acc == 0)\n\
+\       goto %s;\n\
+\    else\n\
+\       goto %s;\n\
+\%s:\n\
+\    goto %s;\n\
+\%s:\n\
+\    goto %s;\n" qr qc nc qt qf nt nr nf nr
+
+whileCode :: Transducer -> String
+whileCode Transducer{outputWire = WArrow (WTimes (WPort (qc, nc)) (WPort (qa, na))) (WPort (qr, nr))} =
+    printf "\
+\%s:\n\
+\    goto %s;\n\
+\%s:\n\
+\    if (acc == 0)\n\
+\       goto %s;\n\
+\    else\n\
+\       goto %s;\n\
+\%s:\n\
+\    goto %s;\n" qr qc nc qa nr na qc
