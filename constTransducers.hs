@@ -43,7 +43,7 @@ ifCode Transducer{outputWire = WArrow (WTimes (WTimes (WPort (qc, nc)) (WPort (q
 \%s:\n\
 \    goto %s;\n\
 \%s:\n\
-\    if (acc == 0)\n\
+\    if (acc)\n\
 \        goto %s;\n\
 \    else\n\
 \        goto %s;\n\
@@ -58,7 +58,7 @@ whileCode Transducer{outputWire = WArrow (WTimes (WPort (qc, nc)) (WPort (qa, na
 \%s:\n\
 \    goto %s;\n\
 \%s:\n\
-\    if (acc == 0)\n\
+\    if (acc)\n\
 \        goto %s;\n\
 \    else\n\
 \        goto %s;\n\
@@ -74,6 +74,46 @@ variableCode s Transducer{inputWires = inpW, outputWire = WPort (q, n)} =
 \%s:\n\
 \    goto %s;\n" q q' n' n
 
+newVarCode :: CodePrinter
+newVarCode Transducer{outputWire = WTimes (WPort (qr, nr)) (WArrow (WPort (qv, nv)) (WPort (qw, nw)))} = do
+    i <- getFreshInt
+    return $ prepend $ printf "\
+\%s:\n\
+\    acc = mem[%d];\n\
+\    goto %s;\n\
+\%s:\n\
+\    goto %s;\n\
+\%s:\n\
+\    mem[%d] = acc;\n\
+\    goto %s;\n" qr i nr qw qv nv i nw
+
+derefCode :: CodePrinter
+derefCode Transducer{outputWire = WArrow (WTimes (WPort (qr, nr)) (WArrow (WPort (qv, nv)) (WPort (qw, nw)))) (WPort (qa, na))} =
+    return $ prepend $ printf "\
+\%s:\n\
+\%s:\n\
+\// dead-end\n\    
+\%s:\n\
+\    goto %s;\n\
+\%s:\n\
+\    goto %s;\n" nw qv qa qr nr na
+
+assignCode :: CodePrinter
+assignCode Transducer{outputWire = WArrow (WTimes (WTimes _ (WArrow (WPort (qx, nx)) (WPort (qw, nw)))) (WPort (qv, nv))) (WPort (qa, na))} = do
+    i <- getFreshInt
+    return $ prepend $ printf "\
+\%s:\n\
+\    goto %s;\n\
+\%s:\n\
+\    mem[%d] = acc;\n\
+\    goto %s;\n\
+\%s:\n\
+\    acc = mem[%d];\n\
+\    goto %s;\n\
+\%s:\n\
+\    goto %s;\n" qa qv nv i qw qx i nx nw na
+
+
 numberDescr :: Int -> TransducerDescr
 numberDescr n = (numberCode n, closedSig N)
 
@@ -88,3 +128,12 @@ ifDescr = (ifCode, closedSig (Arrow (Times (Times N N) N) N))
 
 whileDescr :: TransducerDescr
 whileDescr = (whileCode, closedSig (Arrow (Times N N) N))
+
+newVarDescr :: TransducerDescr
+newVarDescr = (newVarCode, closedSig (Times N (Arrow N N)))
+
+derefDescr :: TransducerDescr
+derefDescr = (derefCode, closedSig (Arrow (Times N (Arrow N N)) N))
+
+assignDescr :: TransducerDescr
+assignDescr = (assignCode, closedSig (Arrow (Times (Times N (Arrow N N)) N) N))

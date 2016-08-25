@@ -1,9 +1,9 @@
 module Rules where
 
-import qualified Data.Map    as M (delete, insert, intersection, union, (!))
+import           Control.Monad (liftM2)
+import qualified Data.Map      as M (delete, insert, intersection, union, (!))
 import           Definitions
 import           Transducer
-import Control.Monad (liftM2)
 
 prod :: Transducer -> Transducer -> EvalState Transducer
 prod tx ty = return $ Transducer inp outp printer

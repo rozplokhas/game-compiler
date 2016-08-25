@@ -1,7 +1,7 @@
 module Transducer where
 
-import Definitions
-import Text.Printf (printf)
+import           Definitions
+import           Text.Printf (printf)
 
 wireByType :: Type -> EvalState Wire
 wireByType N = do
@@ -36,7 +36,7 @@ createTransducer (printer, Signature ts t) = do
     return $ Transducer inw outw printer
 
 generateCode :: Transducer -> EvalState String
-generateCode tr = do 
+generateCode tr = do
     body <- ($ "") <$> (code tr) tr
     n <- getFreshInt
     let WPort (qr, nr) = outputWire tr
