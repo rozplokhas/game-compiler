@@ -1,6 +1,7 @@
 module Transducer where
 
 import Definitions
+import Text.Printf (printf)
 
 wireByType :: Type -> EvalState Wire
 wireByType N = do
@@ -34,5 +35,20 @@ createTransducer (printer, Signature ts t) = do
     inw <- mapM wireByType ts
     return $ Transducer inw outw printer
 
-generateCode :: Transducer -> String
-generateCode tr = (code tr) tr ""
+generateCode :: Transducer -> EvalState String
+generateCode tr = do 
+    body <- ($ "") <$> (code tr) tr
+    n <- getFreshInt
+    let WPort (qr, nr) = outputWire tr
+    return $ printf "\
+\#include <stdio.h>\n\
+\ \n\
+\int main(void) {\n\
+\    int acc = 0;\n\
+\    int mem[%d];\n\
+\    goto %s;\n\
+\ \n\
+\%s\n\
+\%s:\n\
+\    %s\n\
+\}\n" n qr body nr "printf(\"%d\\n\", acc);"

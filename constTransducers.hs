@@ -9,27 +9,27 @@ prepend s = (s ++)
 
 numberCode :: Int -> CodePrinter
 numberCode d Transducer{outputWire = WPort (q, n)} =
-    prepend $ printf "\
+    return $ prepend $ printf "\
 \%s:\n\
 \    acc = %d;\n\
 \    goto %s;\n" q d n
 
 binOpCode :: String -> CodePrinter
-binOpCode op Transducer{outputWire = WArrow (WTimes (WPort (qx, nx)) (WPort (qy, ny))) (WPort (qr, nr))} =
-    let loc = "x"
-    in prepend $ printf "\
+binOpCode op Transducer{outputWire = WArrow (WTimes (WPort (qx, nx)) (WPort (qy, ny))) (WPort (qr, nr))} = do
+    i <- getFreshInt
+    return $ prepend $ printf "\
 \%s:\n\
 \    goto %s;\n\
 \%s:\n\
-\    %s = acc;\n\
+\    mem[%d] = acc;\n\
 \    goto %s;\n\
 \%s:\n\
-\    acc = acc %s %s;\n\
-\    goto %s;\n" qr qx nx loc qy ny op loc nr
+\    acc = acc %s mem[%d];\n\
+\    goto %s;\n" qr qx nx i qy ny op i nr
 
 seqCode :: CodePrinter
 seqCode Transducer{outputWire = WArrow (WTimes (WPort (qx, nx)) (WPort (qy, ny))) (WPort (qr, nr))} =
-    prepend $ printf "\
+    return $ prepend $ printf "\
 \%s:\n\
 \     goto %s;\n\
 \%s:\n\
@@ -39,7 +39,7 @@ seqCode Transducer{outputWire = WArrow (WTimes (WPort (qx, nx)) (WPort (qy, ny))
 
 ifCode :: CodePrinter
 ifCode Transducer{outputWire = WArrow (WTimes (WTimes (WPort (qc, nc)) (WPort (qt, nt))) (WPort (qf, nf))) (WPort (qr, nr))} =
-    prepend $ printf "\
+    return $ prepend $ printf "\
 \%s:\n\
 \    goto %s;\n\
 \%s:\n\
@@ -54,7 +54,7 @@ ifCode Transducer{outputWire = WArrow (WTimes (WTimes (WPort (qc, nc)) (WPort (q
 
 whileCode :: CodePrinter
 whileCode Transducer{outputWire = WArrow (WTimes (WPort (qc, nc)) (WPort (qa, na))) (WPort (qr, nr))} =
-    prepend $ printf "\
+    return $ prepend $ printf "\
 \%s:\n\
 \    goto %s;\n\
 \%s:\n\
@@ -68,7 +68,7 @@ whileCode Transducer{outputWire = WArrow (WTimes (WPort (qc, nc)) (WPort (qa, na
 variableCode :: String -> CodePrinter
 variableCode s Transducer{inputWires = inpW, outputWire = WPort (q, n)} =
     let (WPort (q', n')) = inpW M.! s
-    in prepend $ printf "\
+    in return $ prepend $ printf "\
 \%s:\n\
 \    goto %s;\n\
 \%s:\n\

@@ -35,7 +35,7 @@ type Label = String
 type Port = (Label, Label)
 data Wire = WPort Port | WTimes Wire Wire | WArrow Wire Wire deriving (Eq, Show)
 
-type CodePrinter = Transducer -> ShowS
+type CodePrinter = Transducer -> EvalState ShowS
 type TransducerDescr = (CodePrinter, Signature)
 data Transducer = Transducer {
                     inputWires :: Map String Wire,
@@ -43,7 +43,7 @@ data Transducer = Transducer {
                     code       :: CodePrinter
                   }
 
-type EvalState = StateT [Label] (Either String)
+type EvalState = StateT (Int, [Label]) (Either String)
 
 allStrings :: [String]
 allStrings = concat $ tail $ iterate (\l -> (:) <$> letters <*> l) [""]
@@ -51,9 +51,15 @@ allStrings = concat $ tail $ iterate (\l -> (:) <$> letters <*> l) [""]
 
 getFreshString :: EvalState String
 getFreshString = do
-    (s : ss) <- get
-    put ss
+    (n, s : ss) <- get
+    put (n, ss)
     return s
 
+getFreshInt :: EvalState Int
+getFreshInt = do
+    (n, s) <- get
+    put (n + 1, s)
+    return n
+
 runEval :: EvalState a -> Either String a
-runEval es = evalStateT es allStrings
+runEval es = evalStateT es (0, allStrings)
