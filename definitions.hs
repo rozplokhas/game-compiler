@@ -43,7 +43,7 @@ data Transducer = Transducer {
                     code       :: CodePrinter
                   }
 
-type EvalState = StateT [Label] (Either String) -- (State [Label])
+type EvalState = StateT [Label] (Either String)
 
 allStrings :: [String]
 allStrings = concat $ tail $ iterate (\l -> (:) <$> letters <*> l) [""]
