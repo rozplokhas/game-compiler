@@ -46,6 +46,9 @@ data Transducer = Transducer {
                     code       :: CodePrinter
                   }
 
+prepend :: String -> ShowS
+prepend s = (s ++)
+
 type EvalState = StateT (Int, [Label]) (Either String)
 
 allStrings :: [String]

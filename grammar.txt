@@ -1,6 +1,6 @@
 <prog>               ::= <function> | <let> | <label> | <local> | <semaphore> | <block>
 
-<function>           ::= '\'         <variable>+           '->' <prog>
+<function>           ::= '\'         <variable>            '->' <prog>
 <let>                ::= 'let'       <variable> '=' <prog> 'in' <prog>
 <local>              ::= 'new'       <variable>            'in' <prog>
 <label>              ::= 'label'     <variable>            'in' <prog>

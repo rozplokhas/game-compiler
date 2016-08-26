@@ -1,11 +1,10 @@
-module Collect (transform, buildTransducer) where
+module Collect (transform, buildTransducer, test) where
 
 import           ConstTransducers
 import           Data.Map         as M (Map, singleton, insert, empty, (!))
 import           Definitions
 import           Rules
 import           Transducer
-
 
 data LambdaTree = LVar String
                 | LApp LambdaTree LambdaTree
@@ -53,3 +52,7 @@ buildTransducer' context (LProduct a b) = do
 
 buildTransducer' context (LConst descr) = do
     createTransducer descr
+
+
+test :: LambdaTree
+test = LApp (LAbs ("x", Times N (Arrow N N)) (LApp (LConst assignDescr) (LProduct (LVar "x") (LConst (numberDescr 42))))) (LConst newVarDescr)

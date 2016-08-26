@@ -4,9 +4,6 @@ import qualified Data.Map    as M ((!))
 import           Definitions
 import           Text.Printf (printf)
 
-prepend :: String -> ShowS
-prepend s = (s ++)
-
 numberCode :: Int -> CodePrinter
 numberCode d Transducer{outputWire = WPort (q, n)} =
     return $ prepend $ printf "\
