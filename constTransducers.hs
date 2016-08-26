@@ -65,14 +65,31 @@ whileCode Transducer{outputWire = WArrow (WTimes (WPort (qc, nc)) (WPort (qa, na
 \%s:\n\
 \    goto %s;\n" qr qc nc qa nr na qc
 
-variableCode :: String -> CodePrinter
-variableCode s Transducer{inputWires = inpW, outputWire = WPort (q, n)} =
-    let (WPort (q', n')) = inpW M.! s
-    in return $ prepend $ printf "\
+wireToList :: Bool -> Wire -> [((Label, Label), Bool)]
+wireToList f (WPort p) = [(p, f)]
+wireToList f (WTimes w1 w2) = wireToList f w1 ++ wireToList f w2
+wireToList f (WArrow w1 w2) = wireToList (not f) w1 ++ wireToList f w2
+
+connect :: ((Label, Label), Bool) -> ((Label, Label), Bool) -> String
+connect ((q, n), False) ((q', n'), _) = printf "\
 \%s:\n\
 \    goto %s;\n\
 \%s:\n\
 \    goto %s;\n" q q' n' n
+
+connect ((q, n), True) ((q', n'), _) = printf "\
+\%s:\n\
+\    goto %s;\n\
+\%s:\n\
+\    goto %s;\n" q' q n n'
+
+connectWires :: Wire -> Wire -> String
+connectWires w1 w2 = concat $ zipWith connect (wireToList False w1) (wireToList False w2)
+
+variableCode :: String -> CodePrinter
+variableCode s Transducer{inputWires = inpWs, outputWire = outW} =
+    let inpW = inpWs M.! s
+    in return $ prepend $ connectWires outW inpW
 
 newVarCode :: CodePrinter
 newVarCode Transducer{outputWire = WTimes (WPort (qr, nr)) (WArrow (WPort (qv, nv)) (WPort (qw, nw)))} = do
@@ -99,9 +116,11 @@ derefCode Transducer{outputWire = WArrow (WTimes (WPort (qr, nr)) (WArrow (WPort
 \    goto %s;\n" nw qv qa qr nr na
 
 assignCode :: CodePrinter
-assignCode Transducer{outputWire = WArrow (WTimes (WTimes _ (WArrow (WPort (qx, nx)) (WPort (qw, nw)))) (WPort (qv, nv))) (WPort (qa, na))} = do
+assignCode Transducer{outputWire = WArrow (WTimes (WTimes (WPort (qr, nr)) (WArrow (WPort (qx, nx)) (WPort (qw, nw)))) (WPort (qv, nv))) (WPort (qa, na))} = do
     i <- getFreshInt
     return $ prepend $ printf "\
+\%s:\n\
+\// dead-end\n\ 
 \%s:\n\
 \    goto %s;\n\
 \%s:\n\
@@ -111,7 +130,7 @@ assignCode Transducer{outputWire = WArrow (WTimes (WTimes _ (WArrow (WPort (qx, 
 \    acc = mem[%d];\n\
 \    goto %s;\n\
 \%s:\n\
-\    goto %s;\n" qa qv nv i qw qx i nx nw na
+\    goto %s;\n" nr qa qv nv i qw qx i nx nw na
 
 
 numberDescr :: Int -> TransducerDescr

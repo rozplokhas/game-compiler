@@ -2,10 +2,10 @@ module Parser (parse) where
 
 import           Control.Applicative ((<|>))
 import           Data.Char           (isAlpha, isDigit)
-import           Definitions         (AST (..))
+import           Definitions         (Type (..), Variable, AST (..))
 
 operators :: String
-operators = "+-*/%><()!;=\\"
+operators = "+-*/%><()!;=:\\"
 
 longOperators :: [String]
 longOperators = ["->", ":=", "||", "&&", "==", "!="]
@@ -21,6 +21,7 @@ data Token = TOp String
 tokenize, tokenize' :: String -> [Token]
 tokenize "" = []
 tokenize [c] = tokenize' [c]
+tokenize ('-' : '>' : '>' : cs) = TOp "->>" : tokenize cs
 tokenize ('|' : '|' : '|' : cs) = TOp "|||" : tokenize cs
 tokenize s@(c1 : c2 : cs) | [c1, c2] `elem` longOperators = TOp [c1, c2] : tokenize cs
                           | otherwise                      = tokenize' s
@@ -73,35 +74,47 @@ nipProg = oneOf [nipAbs, nipLet, nipLocal, nipLabel, nipSemaphore, nipBlock]
 
 nipAbs :: Nip
 nipAbs s = do
-    (TOp "\\" : TWord x : TOp "->" : r) <- return s
+    -- (TOp "\\" : TWord x : TOp "->" : r) <- return s
+    (TOp "\\" : s11) <- return s
+    (VarHelp v, s12) <- nipVariable s11
+    (TOp "->" : r) <- return s12
     (t, r') <- nipProg r
-    return (Abs x t, r')
+    return (Abs v t, r')
 
 nipLet :: Nip
 nipLet s = do
-    (TWord "let" : TWord x : TOp "=" : s1) <- return s
+    -- (TWord "let" : TWord x : TOp "=" : s1) <- return 
+    (TWord "let" : s11) <- return s
+    (VarHelp v, s12) <- nipVariable s11
+    (TOp "=" : s1) <- return s12
     (e, s2) <- nipProg s1
     (TWord "in" : s3) <- return s2
     (t, r) <- nipProg s3
-    return (App (Abs x t) e, r)
+    return (App (Abs v t) e, r)
 
 nipLocal :: Nip
 nipLocal s = do
     (TWord "new" : TWord x : TWord "in" : r) <- return s
     (t, r') <- nipProg r
-    return (Local x t, r')
+    return (Local (x, Times N (Arrow N N)) t, r')
 
 nipLabel :: Nip
 nipLabel s = do
-    (TWord "label" : TWord x : TWord "in" : r) <- return s
+    -- (TWord "label" : TWord x : TWord "in" : r) <- return s
+    (TWord "label" : s11) <- return s
+    (VarHelp v, s12) <- nipVariable s11
+    (TWord "in" : r) <- return s12
     (t, r') <- nipProg r
-    return (Label x t, r')
+    return (Label v t, r')
 
 nipSemaphore :: Nip
 nipSemaphore s = do
-    (TWord "semaphore" : TWord x : TWord "in" : r) <- return s
+    -- (TWord "semaphore" : TWord x : TWord "in" : r) <- return s
+    (TWord "semaphore" : s11) <- return s
+    (VarHelp v, s12) <- nipVariable s11
+    (TWord "in" : r) <- return s12
     (t, r') <- nipProg r
-    return (Semaphore x t, r')
+    return (Semaphore v t, r')
 
 nipBlock :: Nip
 nipBlock = collect [";"] (\_ x y -> Sequential x y) nipInstruct
@@ -237,8 +250,46 @@ nipInnerProg s = do
     (TOp ")" : r') <- return r
     return (e, r')
 
+nipVariable :: Nip
+nipVariable s = do
+    (TWord name : s') <- return s
+    (TOp ":" : r) <- return s'
+    (VarHelp (_, t), r') <- nipType r
+    return (VarHelp (name, t), r')
+
+nipType :: Nip
+nipType = oneOf [nipArrow, nipTimes, nipBaseType]
+
+nipTimes :: Nip
+nipTimes s = do
+    (VarHelp (_, t1), s1) <- nipBaseType s
+    (TOp "*" : s2) <- return s1
+    (VarHelp (_, t2), r) <- nipBaseType s2
+    return (VarHelp ("", Times t1 t2), r)
+
+nipArrow :: Nip
+nipArrow s = do
+    (VarHelp (_, t1), s1) <- nipBaseType s
+    (TOp "->>" : s2) <- return s1
+    (VarHelp (_, t2), r) <- nipBaseType s2
+    return (VarHelp ("", Arrow t1 t2), r)
+
+nipBaseType :: Nip
+nipBaseType = oneOf [nipInnerType, nipN]
+
+nipInnerType :: Nip
+nipInnerType s = do
+    (TOp "(" : s') <- return s
+    (t, r) <- nipType s'
+    (TOp ")" : r') <- return r
+    return (t, r')
+
+nipN :: Nip
+nipN (TWord "N" : r) = return (VarHelp ("", N), r)
+nipN _ = fail ""  
+
 parse :: String -> Maybe AST
-parse str = (nipProg $ withoutSugar $ tokenize str) >>= (\(t, s) -> if null s then Just t else Nothing)
+parse str = (nipProg $ tokenize str) >>= (\(t, s) -> if null s then Just t else Nothing)
 
 main :: IO ()
 main = do

@@ -1,54 +1,55 @@
-module Collect (buildTransducer) where
+module Collect (transform, buildTransducer) where
 
 import           ConstTransducers
-import           Data.Map         as M (Map, singleton)
+import           Data.Map         as M (Map, singleton, insert, empty, (!))
 import           Definitions
 import           Rules
 import           Transducer
 
-buildTransducer :: AST -> EvalState Transducer
 
-buildTransducer (IConst n) = createTransducer (numberDescr n)
+data LambdaTree = LVar String
+                | LApp LambdaTree LambdaTree
+                | LAbs Variable LambdaTree
+                | LProduct LambdaTree LambdaTree
+                | LConst TransducerDescr
 
-buildTransducer (BinOp op x y) = do
-    xt <- buildTransducer x
-    yt <- buildTransducer y
-    xy <- prod xt yt
-    p <- createTransducer (binOpDescr op)
-    application p xy
-
-buildTransducer (IfThenElse c t f) = do
-    cT <- buildTransducer c
-    tT <- buildTransducer t
-    fT <- buildTransducer f
-    ctT <- prod cT tT
-    ctfT <- prod ctT fT
-    ifT <- createTransducer ifDescr
-    application ifT ctfT
-
-buildTransducer (While c a) = do
-    cT <- buildTransducer c
-    aT <- buildTransducer a
-    caT <- prod cT aT
-    whileT <- createTransducer whileDescr
-    application whileT caT
+transform :: AST -> LambdaTree
+transform (Var s) = LVar s
+transform (App f x) = LApp (transform f) (transform x)
+transform (Abs x t) = LAbs x (transform t)
+transform (IfThenElse c t f) = LApp (LConst ifDescr) (LProduct (LProduct (transform c) (transform t)) (transform f))
+transform (IConst i) = LConst (numberDescr i)
+transform (BinOp op x y) = LApp (LConst (binOpDescr op)) (LProduct (transform x) (transform y))
+transform (Local x t) = LApp (LAbs x (transform t)) (LConst newVarDescr)
+transform (Ref t) = LApp (LConst derefDescr) (transform t)
+transform (Assign t1 t2) = LApp (LConst assignDescr) (LProduct (transform t1) (transform t2))
+transform (Sequential t1 t2) = LApp (LConst seqDescr) (LProduct (transform t1) (transform t2))
+transform (While t1 t2) = LApp (LConst whileDescr) (LProduct (transform t1) (transform t2))
 
 
 
-testWhile = do
-    o1 <- createTransducer (numberDescr 0)
-    o2 <- createTransducer (numberDescr 0)
-    o <- prod o1 o2
-    wh <- createTransducer whileDescr
-    ap <- application wh o
-    generateCode ap
+buildTransducer :: LambdaTree -> EvalState Transducer
+buildTransducer = buildTransducer' empty
 
-testVar = do
-    ten <- createTransducer (numberDescr 10)
-    v <- createTransducer newVarDescr
-    r <- createTransducer derefDescr
-    a <- application r v
-    p <- prod a ten
-    s <- createTransducer seqDescr
-    r <- application s p
-    generateCode r
+buildTransducer' :: M.Map String Type -> LambdaTree -> EvalState Transducer
+
+buildTransducer' context (LVar x) = 
+    let t = context ! x 
+    in createTransducer (variableCode x, Signature (singleton x t) t)
+
+buildTransducer' context (LApp f x) = do
+    ft <- buildTransducer' context f
+    xt <- buildTransducer' context x
+    application ft xt
+
+buildTransducer' context (LAbs (x, t) m) = do
+    mt <- buildTransducer' (insert x t context) m
+    abstraction x mt
+
+buildTransducer' context (LProduct a b) = do
+    at <- buildTransducer' context a
+    bt <- buildTransducer' context b
+    prod at bt
+
+buildTransducer' context (LConst descr) = do
+    createTransducer descr

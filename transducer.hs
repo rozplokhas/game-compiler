@@ -45,7 +45,7 @@ generateCode tr = do
 \ \n\
 \int main(void) {\n\
 \    int acc = 0;\n\
-\    int mem[%d];\n\
+\    static int mem[%d];\n\
 \    goto %s;\n\
 \ \n\
 \%s\n\

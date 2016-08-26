@@ -3,33 +3,36 @@ module Definitions where
 import           Control.Monad.State.Lazy (StateT, evalStateT, get, put)
 import           Data.Map                 (Map, empty)
 
-data AST = Var String
-         | App AST AST
-         | Abs String AST
-         | IfThenElse AST AST AST
-         | BConst Bool
-         | IConst Int
-         | Fix
-         | BinOp String AST AST
-         | Local String AST
-         | Ref AST
-         | Assign AST AST
-         | Sequential AST AST
-         | Label String AST
-         | Break AST
-         | Continue AST
-         | While AST AST
-         | Parallel AST AST
-         | Semaphore String AST
-         | Grab AST
-         | Release AST
-         deriving (Eq, Show)
-
 data Type = N | Times Type Type | Arrow Type Type deriving (Eq, Show)
 data Signature = Signature (Map String Type) Type deriving (Eq, Show)
 
 closedSig :: Type -> Signature
 closedSig = Signature empty
+
+type Variable = (String, Type)
+
+data AST = Var String
+         | App AST AST
+         | Abs Variable AST
+         | IfThenElse AST AST AST
+         | BConst Bool
+         | IConst Int
+         | Fix
+         | BinOp String AST AST
+         | Local Variable AST
+         | Ref AST
+         | Assign AST AST
+         | Sequential AST AST
+         | Label Variable AST
+         | Break AST
+         | Continue AST
+         | While AST AST
+         | Parallel AST AST
+         | Semaphore Variable AST
+         | Grab AST
+         | Release AST
+         | VarHelp Variable 
+         deriving (Eq, Show)
 
 type Label = String
 type Port = (Label, Label)
