@@ -45,7 +45,6 @@ application tf tx =
 
 switchWireQ :: Bool -> Wire -> Wire -> Wire -> Int -> String
 switchWireQ False (WPort (qi, _)) (WPort (ql, _)) (WPort (qr, _)) ind = printf "\
-\//switchWireQ\n\
 \%s:\n\
 \    mem[%d] = %d;\n\
 \    goto %s;\n\
@@ -53,7 +52,6 @@ switchWireQ False (WPort (qi, _)) (WPort (ql, _)) (WPort (qr, _)) ind = printf "
 \    mem[%d] = %d;\n\
 \    goto %s;\n" ql ind (0 :: Int) qi qr ind (1 :: Int) qi
 switchWireQ True (WPort (qi, _))  (WPort (ql, _)) (WPort (qr, _)) ind = printf "\
-\//switchWireA\n\
 \%s:\n\
 \    if (mem[%d])\n\
 \        goto %s;\n\
@@ -64,14 +62,12 @@ switchWireQ f (WArrow iwl iwr) (WArrow owl owr) (WArrow owl' owr') ind = switchW
 
 switchWireA :: Bool -> Wire -> Wire -> Wire -> Int -> String
 switchWireA False (WPort (_, ni))  (WPort (_, nl)) (WPort (_, nr)) ind = printf "\
-\//switchWireA\n\
 \%s:\n\
 \    if (mem[%d])\n\
 \        goto %s;\n\
 \    else\n\
 \        goto %s;\n" ni ind nr nl
 switchWireA True (WPort (_, ni))  (WPort (_, nl)) (WPort (_, nr)) ind = printf "\
-\//switchWireQ\n\
 \%s:\n\
 \    mem[%d] = %d;\n\
 \    goto %s;\n\
@@ -83,11 +79,9 @@ switchWireA f (WArrow iwl iwr) (WArrow owl owr) (WArrow owl' owr') ind = switchW
 
 copyCatQ :: Bool -> Wire -> Wire -> String
 copyCatQ False (WPort (qi, _)) (WPort (qo, _)) = printf "\
-\//copyCatQ\n\
 \%s:\n\
 \    goto %s;\n" qo qi
 copyCatQ True (WPort (qi, _)) (WPort (qo, _)) = printf "\
-\//copyCatQ\n\
 \%s:\n\
 \    goto %s;\n" qi qo
 copyCatQ f (WTimes iwl iwr) (WTimes owl owr) = copyCatQ f iwl owl ++ copyCatQ f iwr owr
@@ -103,11 +97,9 @@ switchContextQ iC lC rC ind =
 
 copyCatA :: Bool -> Wire -> Wire -> String
 copyCatA False (WPort (_, ni)) (WPort (_, no)) = printf "\
-\//copyCatA\n\
 \%s:\n\
 \    goto %s;\n" ni no
 copyCatA True (WPort (_, ni)) (WPort (_, no)) = printf "\
-\//copyCatA\n\
 \%s:\n\
 \    goto %s;\n" no ni
 copyCatA f (WTimes iwl iwr) (WTimes owl owr) = copyCatA f iwl owl ++ copyCatA f iwr owr
@@ -125,4 +117,4 @@ switcher :: M.Map String Wire -> M.Map String Wire -> M.Map String Wire -> EvalS
 switcher sharedC leftC rightC | null sharedC = return id
                               | otherwise = do
     i <- getFreshInt
-    return $ prepend $ "/* SWITCHER WORK: \nshared = " ++ show sharedC ++ ",\n leftC = " ++ show leftC ++ ",\n rightC = " ++ show rightC ++ "*/ \n" ++ switchContextQ sharedC leftC rightC i ++ switchContextA sharedC leftC rightC i ++ "// END SWITCHER WORK\n"
+    return $ prepend $ switchContextQ sharedC leftC rightC i ++ switchContextA sharedC leftC rightC i

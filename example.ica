@@ -3,9 +3,10 @@ let n:N = 10 in
 
 new i   in
 new res in
-i := n
+i := n;
 res := 1;
 while !i do (
     res := !res * x;
     i := !i - 1
-) 
+);
+!r

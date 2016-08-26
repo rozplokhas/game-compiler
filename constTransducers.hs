@@ -21,8 +21,8 @@ binOpCode op Transducer{outputWire = WArrow (WTimes (WPort (qx, nx)) (WPort (qy,
 \    mem[%d] = acc;\n\
 \    goto %s;\n\
 \%s:\n\
-\    acc = acc %s mem[%d];\n\
-\    goto %s;\n" qr qx nx i qy ny op i nr
+\    acc = mem[%d] %s acc;\n\
+\    goto %s;\n" qr qx nx i qy ny i op nr
 
 seqCode :: CodePrinter
 seqCode Transducer{outputWire = WArrow (WTimes (WPort (qx, nx)) (WPort (qy, ny))) (WPort (qr, nr))} =
