@@ -9,4 +9,4 @@ while !i do (
     res := !res * x;
     i := !i - 1
 );
-!r
+!res
