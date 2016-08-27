@@ -251,4 +251,4 @@ parse :: String -> EvalState AST
 parse text = do
     ts <- tokenize text
     case nipProg ts of Just (ast, []) -> return ast 
-                       otherwise      -> "Syntax error"
+                       otherwise      -> evalError "Syntax error"
