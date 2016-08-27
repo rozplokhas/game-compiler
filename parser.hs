@@ -1,4 +1,4 @@
-module Main where
+module Parser (parse) where
 
 import           Control.Applicative ((<|>))
 import           Control.Monad       (liftM2)
@@ -244,3 +244,11 @@ nipInnerType s = do
 nipN :: Nip Type
 nipN (TWord "N" : r) = return (N, r)
 nipN _               = fail ""
+
+
+
+parse :: String -> EvalState AST
+parse text = do
+    ts <- tokenize text
+    case nipProg ts of Just (ast, []) -> return ast 
+                       otherwise      -> "Syntax error"

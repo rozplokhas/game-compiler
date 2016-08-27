@@ -45,10 +45,6 @@ type EvalState = StateT (Int, [String]) (Either String)
 evalError :: String -> EvalState a
 evalError = throwError
 
-allStrings :: [String]
-allStrings = concat $ tail $ iterate (\l -> (:) <$> letters <*> l) [""]
-    where letters = ['a'..'z']
-
 getFreshString :: EvalState String
 getFreshString = do
     (n, s : ss) <- get
