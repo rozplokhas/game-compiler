@@ -1,177 +1,140 @@
-module Parser (parse) where
+module Main where
 
 import           Control.Applicative ((<|>))
-import           Data.Char           (isAlpha, isDigit)
-import           Definitions         (Type (..), Variable, AST (..))
+import           Control.Monad       (liftM2)
+import           Data.Char           (isAlpha, isDigit, isLower, isSpace,
+                                      isUpper)
+import           Data.List           (find)
+import           Data.Maybe          (isJust)
+import           Definitions
 
 operators :: String
-operators = "+-*/%><()!;=:\\"
+operators = "():!+-*/%<>;=\\"
 
 longOperators :: [String]
-longOperators = ["->", ":=", "||", "&&", "==", "!="]
+longOperators = ["->", "==", "!=", "<=", ">=",  "&&", "||", ":="]
 
 forbiddenNames :: [String]
-forbiddenNames = ["if", "then", "else", "while", "do", "True", "False", "new", "label", "semaphore", "let", "in", "break", "continue", "grab", "release"]
+forbiddenNames = ["if", "then", "else", "while", "do", "let", "new", "in", "N"]
 
 data Token = TOp String
            | TWord String
            | TInt Int
            deriving (Eq, Show)
 
-tokenize, tokenize' :: String -> [Token]
-tokenize "" = []
+tokenize, tokenize' :: String -> EvalState [Token]
+tokenize "" = return []
 tokenize [c] = tokenize' [c]
-tokenize ('-' : '>' : '>' : cs) = TOp "->>" : tokenize cs
-tokenize ('|' : '|' : '|' : cs) = TOp "|||" : tokenize cs
-tokenize s@(c1 : c2 : cs) | [c1, c2] `elem` longOperators = TOp [c1, c2] : tokenize cs
-                          | otherwise                      = tokenize' s
-
-tokenize' "" = [] -- not reached
-tokenize' str@(c : cs) | c `elem` operators = TOp [c] : tokenize cs
-                       | not (null i)       = TInt (read i) : tokenize is
-                       | not (null s)       = TWord s : tokenize ss
-                       | otherwise          = tokenize cs
+tokenize s@(c1 : c2 : cs) | [c1, c2] `elem` longOperators = (TOp [c1, c2] :) <$> tokenize cs
+                          | otherwise                     = tokenize' s
+tokenize' "" = return [] -- unreachable
+tokenize' str@(c : cs) | c `elem` operators    = (TOp [c] :) <$> tokenize cs
+                       | c == '_'              = if isJust (find (/= '_') w)
+                                                 then (TWord w :) <$> tokenize ws
+                                                 else evalError $ "Parse error: unexpected token " ++ w
+                       | isLower c || w == "N" = (TWord w :) <$> tokenize ws
+                       | not (null i)          = (TInt (read i) :) <$> tokenize is
+                       | not (null w)          = evalError $ "Parse error: identifiers can't start with upper case letter or digit"
+                       | isSpace c             = tokenize cs
+                       | otherwise             = evalError $ "Parse error: unexpected symbol " ++ [c]
   where
     (i, is) = span isDigit str
-    (s, ss) = span isAlpha str
+    (w, ws) = span (liftM2 (||) (liftM2 (||) isAlpha isDigit) (== '_')) str
 
-type Nip = [Token] -> Maybe (AST, [Token])
 
--- returns (unfoldr go ini, last (failed) ini)
-unfoldrPlus :: (b -> Maybe (a, b)) -> b -> ([a], b)
-unfoldrPlus go ini = case go ini of Nothing     -> ([], ini)
-                                    Just (a, b) -> let (xs, r) = unfoldrPlus go b in (a : xs, r)
 
-collect :: [String] -> (String -> AST -> AST -> AST) -> Nip -> Nip
-collect ops glue argNip s = do
-    (x0, r) <- argNip s
-    case collectGo x0 r of Just (t, r') -> return (t, r')
-                           Nothing      -> return (x0, r)
-    where
-        collectGo acc ts = do
-            (TOp c : s1) <- return ts
-            True <- return $ c `elem` ops
-            (x, r) <- argNip s1
-            case collectGo (glue c acc x) r of Just (t, r') -> return (t, r')
-                                               Nothing      -> return (glue c acc x, r)
+type Nip a = [Token] -> Maybe (a, [Token])
+type NipAST = Nip AST
 
-oneOf :: [Nip] -> Nip
+oneOf :: [Nip a] -> Nip a
 oneOf xs s = foldr1 (<|>) $ map ($ s) xs
 
-withoutSugar :: [Token] -> [Token]
-withoutSugar = helper False
+collect :: Maybe [String] -> NipAST -> (String -> AST -> AST -> AST) -> NipAST
+collect separators nipElement constructor = rec Nothing ""
     where
-        helper _ [] = []
-        helper False (TOp "\\" : ts) = helper True ts
-        helper False (t : ts) = t : helper False ts
-        helper True (TOp "->" : ts) = helper False ts
-        helper True (t : ts) = TOp "\\" : t : TOp "->" : helper True ts
+        withSep :: Maybe AST -> NipAST
+        withSep acc = case separators of Nothing  -> rec acc ""
+                                         Just ops -> nipSep ops acc
+
+        nipSep :: [String] -> Maybe AST -> NipAST
+        nipSep ops acc s = do
+            (TOp op : r) <- return s
+            True <- return $ op `elem` ops
+            rec acc op r
+
+        rec :: Maybe AST -> String -> NipAST
+        rec acc op s = do
+            (x, s1) <- nipElement s
+            newAcc <- case acc of Nothing -> return x
+                                  Just a  -> return $ constructor op a x
+            case withSep (Just newAcc) s1 of Nothing     -> return (newAcc, s1)
+                                             Just (a, r) -> return (a, r)
 
 
+nipProg :: NipAST
+nipProg = oneOf [nipAbs, nipLet, nipLocal, nipBlock]
 
-nipProg :: Nip
-nipProg = oneOf [nipAbs, nipLet, nipLocal, nipLabel, nipSemaphore, nipBlock]
-
-nipAbs :: Nip
+nipAbs :: NipAST
 nipAbs s = do
-    -- (TOp "\\" : TWord x : TOp "->" : r) <- return s
-    (TOp "\\" : s11) <- return s
-    (VarHelp v, s12) <- nipVariable s11
-    (TOp "->" : r) <- return s12
-    (t, r') <- nipProg r
-    return (Abs v t, r')
-
-nipLet :: Nip
-nipLet s = do
-    -- (TWord "let" : TWord x : TOp "=" : s1) <- return 
-    (TWord "let" : s11) <- return s
-    (VarHelp v, s12) <- nipVariable s11
-    (TOp "=" : s1) <- return s12
-    (e, s2) <- nipProg s1
-    (TWord "in" : s3) <- return s2
+    (TOp "\\" : s1) <- return s
+    (vs, s2) <- getAllVarsRev s1
+    (TOp "->" : s3) <- return s2
     (t, r) <- nipProg s3
+    return (foldr Abs t vs, r)
+    where
+        getAllVarsRev :: [Token] -> Maybe ([Variable], [Token])
+        getAllVarsRev s' = do
+            (v', s1') <- nipVarDef s'
+            case getAllVarsRev s1' of Nothing        -> return ([v'], s1')
+                                      Just (vs', r') -> return (v' : vs', r')
+
+
+nipLet :: NipAST
+nipLet s = do
+    (TWord "let" : s1) <- return s
+    (v, s2) <- nipVarDef s1
+    (TOp "=" : s3) <- return s2
+    (e, s4) <- nipProg s3
+    (TWord "in" : s5) <- return s4
+    (t, r) <- nipProg s5
     return (App (Abs v t) e, r)
 
-nipLocal :: Nip
+nipLocal :: NipAST
 nipLocal s = do
-    (TWord "new" : TWord x : TWord "in" : r) <- return s
-    (t, r') <- nipProg r
-    return (Local (x, Times N (Arrow N N)) t, r')
+    (TWord "new" : s1) <- return s
+    (Var name, s2) <- nipVar s1
+    (TWord "in" : s3) <- return s2
+    (t, r) <- nipProg s3
+    return (Local (name, Times N (Arrow N N)) t, r)
 
-nipLabel :: Nip
-nipLabel s = do
-    -- (TWord "label" : TWord x : TWord "in" : r) <- return s
-    (TWord "label" : s11) <- return s
-    (VarHelp v, s12) <- nipVariable s11
-    (TWord "in" : r) <- return s12
-    (t, r') <- nipProg r
-    return (Label v t, r')
+nipBlock :: NipAST
+nipBlock = collect (Just [";"]) nipInstruction (\_ x y -> Sequential x y)
 
-nipSemaphore :: Nip
-nipSemaphore s = do
-    -- (TWord "semaphore" : TWord x : TWord "in" : r) <- return s
-    (TWord "semaphore" : s11) <- return s
-    (VarHelp v, s12) <- nipVariable s11
-    (TWord "in" : r) <- return s12
-    (t, r') <- nipProg r
-    return (Semaphore v t, r')
+nipInstruction :: NipAST
+nipInstruction = oneOf [nipWhile, nipAction]
 
-nipBlock :: Nip
-nipBlock = collect [";"] (\_ x y -> Sequential x y) nipInstruct
-
-nipInstruct :: Nip
-nipInstruct = oneOf [nipWhile, nipSimpleInstruct]
-
-nipWhile :: Nip
+nipWhile :: NipAST
 nipWhile s =  do
     (TWord "while" : s1) <- return s
     (c, s2) <- nipExpr s1
     (TWord "do" : s3) <- return s2
-    (a, r) <- nipSimpleInstruct s3
+    (a, r) <- nipAction s3
     return (While c a, r)
 
-nipSimpleInstruct :: Nip
-nipSimpleInstruct = collect ["|||"] (\_ x y -> Parallel x y) nipCommand
+nipAction :: NipAST
+nipAction = oneOf [nipAssign, nipExpr]
 
-nipCommand :: Nip
-nipCommand = oneOf [nipAssign, nipBreak, nipContinue, nipGrab, nipRelease, nipExpr]
-
-
-nipBreak :: Nip
-nipBreak s = do
-    (TWord "break" : s') <- return s
-    (t, r) <- nipExpr s'
-    return (Break t, r)
-
-nipContinue :: Nip
-nipContinue s = do
-    (TWord "continue" : s') <- return s
-    (t, r) <- nipExpr s'
-    return (Continue t, r)
-
-nipGrab :: Nip
-nipGrab s = do
-    (TWord "grab" : s') <- return s
-    (t, r) <- nipExpr s'
-    return (Grab t, r)
-
-nipRelease :: Nip
-nipRelease s = do
-    (TWord "release" : s') <- return s
-    (t, r) <- nipExpr s'
-    return (Release t, r)
-
-nipAssign :: Nip
+nipAssign :: NipAST
 nipAssign s = do
     (x, s1) <- nipExpr s
     (TOp ":=" : s2) <- return s1
     (v, r) <- nipExpr s2
     return (Assign x v, r)
 
-nipExpr :: Nip
-nipExpr = oneOf [nipIf, nipBoolExpr]
+nipExpr :: NipAST
+nipExpr = oneOf [nipIf, nipArithmExpr]
 
-nipIf :: Nip
+nipIf :: NipAST
 nipIf s = do
     (TWord "if" : s1) <- return s
     (c, s2) <- nipExpr s1
@@ -181,117 +144,103 @@ nipIf s = do
     (f, r) <- nipExpr s5
     return (IfThenElse c t f, r)
 
-nipBoolExpr :: Nip
-nipBoolExpr = collect ["||"] BinOp nipDisjunct
+nipArithmExpr :: NipAST
+nipArithmExpr = oneOf [nipDisjunction, nipDisjunct]
 
-nipDisjunct :: Nip
-nipDisjunct = collect ["&&"] BinOp nipConjunct
+nipDisjunction :: NipAST
+nipDisjunction s = do
+    (x, s1) <- nipDisjunct s
+    (TOp "||" : s2) <- return s1
+    (y, r) <- nipDisjunct s2
+    return (BinOp "||" x y, r)
 
-nipConjunct :: Nip
-nipConjunct = oneOf [nipRelation, nipArithmExpr]
+nipDisjunct :: NipAST
+nipDisjunct = oneOf [nipConjunction, nipConjunct]
 
-nipRelation :: Nip
-nipRelation s = let ordOp = ["==", "!=", "<", ">"]
-                in case collect ordOp BinOp nipArithmExpr s of Nothing               -> Nothing
-                                                               Just (BinOp o x y, r) -> if o `elem` ordOp then Just (BinOp o x y, r) else Nothing
-                                                               _                     -> Nothing
+nipConjunction :: NipAST
+nipConjunction s = do
+    (x, s1) <- nipConjunct s
+    (TOp "&&" : s2) <- return s1
+    (y, r) <- nipConjunct s2
+    return (BinOp "&&" x y, r)
 
-nipArithmExpr :: Nip
-nipArithmExpr = collect ["+", "-"] BinOp nipAddend
+nipConjunct :: NipAST
+nipConjunct = oneOf [nipRelation, nipSum]
 
-nipAddend :: Nip
-nipAddend = collect ["*", "/", "%"] BinOp nipMultiplier
+nipRelation :: NipAST
+nipRelation s = do
+    (x, s1) <- nipSum s
+    (TOp op : s2) <- return s1
+    True <- return $ op `elem` ["==", "!=", "<", ">", "<=", ">="]
+    (y, r) <- nipSum s2
+    return (BinOp op x y, r)
 
-nipMultiplier :: Nip
-nipMultiplier s = let (fs, r) = unfoldrPlus nipFactor s
-                  in if null fs then Nothing else Just $ (foldl1 App fs, r)
+nipSum :: NipAST
+nipSum = collect (Just ["+", "-"]) nipProduct BinOp
 
-nipFactor :: Nip
-nipFactor = oneOf [nipRef, nipInner]
+nipProduct :: NipAST
+nipProduct = collect (Just ["*", "/", "%"]) nipApplication BinOp
 
-nipRef :: Nip
+nipApplication :: NipAST
+nipApplication = collect Nothing nipValue (\_ x y -> App x y)
+
+nipValue :: NipAST
+nipValue = oneOf [nipRef, nipAtom]
+
+nipRef :: NipAST
 nipRef s = do
-    (TOp "!" : s') <- return s
-    (t, r) <- nipInner s'
+    (TOp "!" : s1) <- return s
+    (t, r) <- nipAtom s1
     return (Ref t, r)
 
-nipInner :: Nip
-nipInner = oneOf [nipInt, nipBool, nipFix, nipInnerProg, nipVal]
+nipAtom :: NipAST
+nipAtom = oneOf [nipInt, nipInnerProg, nipVar]
 
-nipVal :: Nip
-nipVal s = do
+nipVar :: NipAST
+nipVar s = do
     (TWord x : r) <- return s
     False <- return $ x `elem` forbiddenNames
     return (Var x, r)
 
-nipBool :: Nip
-nipBool s = do
-    (TWord w : r) <- return s
-    if w == "True"
-        then return (BConst True, r)
-        else if w == "False"
-            then return (BConst False, r)
-            else fail ""
-
-nipInt :: Nip
+nipInt :: NipAST
 nipInt s = do
     (TInt n : r) <- return s
     return (IConst n, r)
 
-nipFix :: Nip
-nipFix s = do
-    (TWord "fix" : r) <- return s
-    return (Fix, r)
-
-nipInnerProg :: Nip
+nipInnerProg :: NipAST
 nipInnerProg s = do
-    (TOp "(" : s') <- return s
-    (e, r) <- nipProg s'
-    (TOp ")" : r') <- return r
-    return (e, r')
+    (TOp "(" : s1) <- return s
+    (pr, s2) <- nipProg s1
+    (TOp ")" : r) <- return s2
+    return (pr, r)
 
-nipVariable :: Nip
-nipVariable s = do
-    (TWord name : s') <- return s
-    (TOp ":" : r) <- return s'
-    (VarHelp (_, t), r') <- nipType r
-    return (VarHelp (name, t), r')
+nipVarDef :: Nip Variable
+nipVarDef s = do
+    (Var name, s1) <- nipVar s
+    (TOp ":" : s2) <- return s1
+    (t, r) <- nipType s2
+    return ((name, t), r)
 
-nipType :: Nip
-nipType = oneOf [nipArrow, nipTimes, nipBaseType]
+nipType :: Nip Type
+nipType s = do
+    (t, s1) <- nipBaseType s
+    case nipRest s1 of Nothing      -> return $ (t, s1)
+                       Just (t2, r) -> return $ (Arrow t t2, r)
+    where
+        nipRest s' = do
+            (TOp "->" : s1') <- return s'
+            nipType s1'
 
-nipTimes :: Nip
-nipTimes s = do
-    (VarHelp (_, t1), s1) <- nipBaseType s
-    (TOp "*" : s2) <- return s1
-    (VarHelp (_, t2), r) <- nipBaseType s2
-    return (VarHelp ("", Times t1 t2), r)
-
-nipArrow :: Nip
-nipArrow s = do
-    (VarHelp (_, t1), s1) <- nipBaseType s
-    (TOp "->>" : s2) <- return s1
-    (VarHelp (_, t2), r) <- nipBaseType s2
-    return (VarHelp ("", Arrow t1 t2), r)
-
-nipBaseType :: Nip
+nipBaseType :: Nip Type
 nipBaseType = oneOf [nipInnerType, nipN]
 
-nipInnerType :: Nip
+nipInnerType :: Nip Type
 nipInnerType s = do
-    (TOp "(" : s') <- return s
-    (t, r) <- nipType s'
-    (TOp ")" : r') <- return r
-    return (t, r')
+    (TOp "(" : s1) <- return s
+    (t, s2) <- nipType s1
+    (TOp ")" : r) <- return s2
+    return (t, r)
 
-nipN :: Nip
-nipN (TWord "N" : r) = return (VarHelp ("", N), r)
-nipN _ = fail ""  
-
-parse :: String -> Maybe AST
-parse str = (nipProg $ tokenize str) >>= (\(t, s) -> if null s then Just t else Nothing)
-
-main :: IO ()
-main = do
-  prog <- readFile "example.ica"
-  print (parse prog)
+nipN :: Nip Type
+nipN (TWord "N" : r) = return (N, r)
+nipN _               = fail ""

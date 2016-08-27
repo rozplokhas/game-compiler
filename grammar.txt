@@ -1,37 +1,41 @@
-<prog>               ::= <function> | <let> | <label> | <local> | <semaphore> | <block>
+<prog>              ::= <function> | <let> | <new_var> | <block>
 
-<function>           ::= '\'         <variable>            '->' <prog>
-<let>                ::= 'let'       <variable> '=' <prog> 'in' <prog>
-<local>              ::= 'new'       <variable>            'in' <prog>
-<label>              ::= 'label'     <variable>            'in' <prog>
-<semaphore>          ::= 'semaphore' <variable>            'in' <prog>
+<function>          ::= '\'   <var_definition> {var_definition} '->' <prog>
+<let>               ::= 'let' <var_definition> '=' <prog>       'in' <prog>
+<new_var>           ::= 'new' <identifier>                      'in' <prog>
 
-<block>              ::= <instruction> | <instruction> ';' <block>
-<instruction>        ::= <simple_instruction> | <while_statement>
-<while_statement>    ::= 'while' <boolean_expr> 'do' <simple_instruction>
-<simple_instruction> ::= <command> | <command> '|||' <simple_instruction>
-<command>            ::= <expr> | <expr> ':=' <expr> | 'break' <expr> | 'continue' <expr> | 'grab' <expr> | 'release' <expr>
+<block>             ::= <instruction> {';' <instruction>}
+<instruction>       ::= <action> | <while_statement>
+<while_statement>   ::= 'while' <expr> 'do' <action>
+<action>            ::= <expr> | <expr> ':=' <expr>
 
-<expr>               ::= <boolean_expr> |  <if_statement>
-<if_statement>       ::= 'if' <boolean_expr> 'then' <expr> 'else' <expr>
+<expr>              ::= <arithm_expr> |  <if_statement>
+<if_statement>      ::= 'if' <expr> 'then' <expr> 'else' <expr>
 
-<boolean_expr>       ::= <disjunct> | <disjunct> '||' <disjunct>
-<disjunct>           ::= <conjunct> | <conjunct> '&&' <conjunct>
-<conjunct>           ::= <arithm_expr> | <arithm_expr> '==' <arithm_expr> | <arithm_expr> '!=' <arithm_expr>
-                       | <arithm_expr> '<' <arithm_expr> | <arithm_expr> '>' <arithm_expr>
+<aritm_expr>        ::= <disjunct> | <disjunct> '||' <disjunct>
+<disjunct>          ::= <conjunct> | <conjunct> '&&' <conjunct>
+<conjunct>          ::= <sum> | <sum> '==' <sum> | <sum> '!=' <sum>
+                              | <sum> '<'  <sum> | <sum> '>'  <sum>
+                              | <sum> '<=' <sum> | <sum> '>=' <sum>
 
-<arithm_expr>        ::= <addend> | <addend> '+' <addend> | <addend> '-' <addend>
-<addend>             ::= <multiplier> | <multiplier> '*' <multiplier> | <multiplier> '/' <multiplier> | <multiplier> '%' <multiplier>
+<sum>               ::= <product> | <product> '+' <sum> | <product> '-' <sum>
+<product>           ::= <application> | <application> '*' <producr> 
+                                      | <application> '/' <product> 
+                                      | <application> '%' <product>
 
-<multiplier>         ::= <factor> | <factor> <addend>
-<factor>             ::= <inner> | '!' <inner>
-<inner>              ::= <ident> | <number> | 'True' | 'False' | 'fix' | '(' <prog> ')'
+<application>       ::= <value> {<value>}
+<value>             ::= <atom> | '!' <atom>
+<atom>              ::= <identifier> | <number> | '(' <prog> ')'
 
-<variable>           ::= <ident> ':' <type>
-<type>               ::= 'N' | <type> '*' <type> | <type> '->' <type> | '(' <type> ')'
+<var_definition>    ::= <identifier> ':' <type>
+<type>              ::= 'N' | <type> {'->' <type>} | '(' <type> ')'
 
-<ident>              ::= <alpha> | <alpha> <ident>
-<number>             ::= <digit> | <digit> <number>
+<identifier>        ::= <lower_case_letter> {<ident_char>} | '_' {ident_char} letter {ident_char}
+<number>            ::= <digit> {<digit>}
 
-<alpha>              ::= 'a' | ... | 'z' | 'A' | ... | 'Z'
-<digit>              ::= '0' | ... | '9'
+<ident_char>        ::= <letter> | '_'
+<letter>            ::= <lower_case_letter> | <upper_case_letter>
+
+<lower_case_letter> ::= 'a' | ... | 'z'
+<upper_case_letter> ::= 'A' | ... | 'Z'
+<digit>             ::= '0' | ... | '9'

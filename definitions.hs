@@ -1,5 +1,6 @@
 module Definitions where
 
+import           Control.Monad.Except     (throwError)
 import           Control.Monad.State.Lazy (StateT, evalStateT, get, put)
 import           Data.Map                 (Map, empty)
 
@@ -15,23 +16,13 @@ data AST = Var String
          | App AST AST
          | Abs Variable AST
          | IfThenElse AST AST AST
-         | BConst Bool
          | IConst Int
-         | Fix
          | BinOp String AST AST
          | Local Variable AST
          | Ref AST
          | Assign AST AST
          | Sequential AST AST
-         | Label Variable AST
-         | Break AST
-         | Continue AST
          | While AST AST
-         | Parallel AST AST
-         | Semaphore Variable AST
-         | Grab AST
-         | Release AST
-         | VarHelp Variable 
          deriving (Eq, Show)
 
 type Label = String
@@ -47,9 +38,12 @@ data Transducer = Transducer {
                   }
 
 prepend :: String -> ShowS
-prepend s = (s ++)
+prepend = (++)
 
-type EvalState = StateT (Int, [Label]) (Either String)
+type EvalState = StateT (Int, [String]) (Either String)
+
+evalError :: String -> EvalState a
+evalError = throwError
 
 allStrings :: [String]
 allStrings = concat $ tail $ iterate (\l -> (:) <$> letters <*> l) [""]
@@ -69,3 +63,6 @@ getFreshInt = do
 
 runEval :: EvalState a -> Either String a
 runEval es = evalStateT es (0, allStrings)
+    where
+        allStrings = concat $ tail $ iterate (\l -> (:) <$> letters <*> l) [""]
+        letters = ['a'..'z']

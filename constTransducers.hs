@@ -28,11 +28,11 @@ seqCode :: CodePrinter
 seqCode Transducer{outputWire = WArrow (WTimes (WPort (qx, nx)) (WPort (qy, ny))) (WPort (qr, nr))} =
     return $ prepend $ printf "\
 \%s:\n\
-\     goto %s;\n\
+\    goto %s;\n\
 \%s:\n\
-\     goto %s;\n\
+\    goto %s;\n\
 \%s:\n\
-\     goto %s;\n" qr qx nx qy ny nr
+\    goto %s;\n" qr qx nx qy ny nr
 
 ifCode :: CodePrinter
 ifCode Transducer{outputWire = WArrow (WTimes (WTimes (WPort (qc, nc)) (WPort (qt, nt))) (WPort (qf, nf))) (WPort (qr, nr))} =
@@ -106,7 +106,7 @@ derefCode Transducer{outputWire = WArrow (WTimes (WPort (qr, nr)) (WArrow (WPort
     return $ prepend $ printf "\
 \%s:\n\
 \%s:\n\
-\// dead-end\n\    
+\// dead-end\n\
 \%s:\n\
 \    goto %s;\n\
 \%s:\n\
@@ -117,7 +117,7 @@ assignCode Transducer{outputWire = WArrow (WTimes (WTimes (WPort (qr, nr)) (WArr
     i <- getFreshInt
     return $ prepend $ printf "\
 \%s:\n\
-\// dead-end\n\ 
+\// dead-end\n\
 \%s:\n\
 \    goto %s;\n\
 \%s:\n\
