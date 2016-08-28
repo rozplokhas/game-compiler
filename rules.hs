@@ -6,7 +6,7 @@ import qualified Data.Map      as M (Map, delete, insert, intersection, keys,
 import           Definitions
 import           Text.Printf   (printf)
 import           Transducer
-import           Utils         (copyCat, evalError, getFreshInt, prepend)
+import           Utils         (copyCat, evalError, getFreshInt, prepend, typesMatch)
 
 
 productRule :: Transducer -> Transducer -> EvalState Transducer
@@ -31,22 +31,23 @@ abstractionRule v t = return $ Transducer inp outp printer
 
 applicationRule :: Transducer -> Transducer -> EvalState Transducer
 applicationRule tf tx = do
-    outp <- outpState
-    if null (M.intersection (inputWires tf) (inputWires tx))
-        then
-            return $ Transducer inp outp printer
-        else
-            evalError "Error: intersecting contextes in application"
+    case (outputWire tf, outputWire tx) of 
+        (WArrow w1 w2, wx) -> if typesMatch w1 wx
+                                then result
+                                else err
+        otherwise -> err
     where
+        result = if null (M.intersection (inputWires tf) (inputWires tx))
+                 then return $ Transducer inp outp printer
+                 else evalError "Error: intersecting contexts in application"
         inp = M.union (inputWires tf) (inputWires tx)
-        outpState = case outputWire tf of WArrow w w' -> return w'
-                                          otherwise   -> evalError "Error: application of non-abstraction value"
+        outp = case outputWire tf of WArrow w w' -> w'
         printer tr@(Transducer inpW outpW c) =
             let cf = M.intersection inpW (inputWires tf) in
             let cx = M.intersection inpW (inputWires tx) in
             let bridge = outputWire tx in
             liftM2 (.) (code tf (Transducer cf (WArrow bridge outpW) c)) (code tx (Transducer cx bridge c))
-
+        err = evalError "Error: mismatched types"
 
 
 switchWire :: Wire -> Wire -> Wire -> Int -> ShowS

@@ -52,3 +52,9 @@ copyCat = copyCat' False
 \    goto %s;\n\
 \%s:\n\
 \    goto %s;\n"
+
+typesMatch :: Wire -> Wire -> Bool
+typesMatch (WPort _)      (WPort _)        = True
+typesMatch (WTimes w1 w2) (WTimes w1' w2') = typesMatch w1 w1' && typesMatch w2 w2'
+typesMatch (WArrow w1 w2) (WArrow w1' w2') = typesMatch w1 w1' && typesMatch w2 w2'
+typesMatch _              _                = False

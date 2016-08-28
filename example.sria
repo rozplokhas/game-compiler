@@ -10,4 +10,6 @@ let pow:N->N->N = \x:N n:N ->
     !res
 in
 
-pow 2 10
+let y:N = 2 in
+
+y; pow 2 10
