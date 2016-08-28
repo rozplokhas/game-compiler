@@ -11,27 +11,27 @@ let pow : N->N->N = \x:N n:N ->
 in
 
 let fib : N->N = \n:N ->
-	new d0 in
-	new d1 in
-	new i  in
-	d1 := 1;
-	while !i != n do (
-		d1 := !d0 + !d1;
-		d0 := !d1 - !d0;
-		i := !i + 1
-	);
-	!d0
+    new d0 in
+    new d1 in
+    new i  in
+    d1 := 1;
+    while !i != n do (
+        d1 := !d0 + !d1;
+        d0 := !d1 - !d0;
+        i := !i + 1
+    );
+    !d0
 in
 
 let apply_to_2 : (N->N)->N = \f:N->N ->
-	f 2
+    f 2
 in
 
 let diverge : N = while 1 do 0
 in
 
 let checkTrue : N->N = \t:N ->
-	if t then 0 else diverge
+    if t then 0 else diverge
 in
 
 checkTrue (pow 2 10 == 1024); checkTrue (4 - 2 * 0 - 1 - 1 == 2); fib (apply_to_2 (pow 4))
