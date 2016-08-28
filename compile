@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 filename=$(echo $1 | cut -f 1 -d '.')
 ./translator $1
 gcc -o $filename $filename.c
