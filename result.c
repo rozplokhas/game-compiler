@@ -2,624 +2,636 @@
  
 int main(void) {
     int acc = 0;
-    static int mem[19];
+    static int mem[17];
     goto qc;
- 
+
+qfu:
+    goto qg;
+ng:
+    goto nfu;
+qfq:
+    goto qh;
+nh:
+    goto nfq;
 qc:
-     goto qf;
-nf:
-     goto qey;
-ney:
-     goto nc;
-qen:
-    goto qfq;
-qfr:
-    goto qeo;
-qep:
-    goto qfs;
-qeq:
-    goto qft;
-qer:
-    mem[0] = 0;
-    goto qfn;
-qfc:
-    mem[0] = 1;
-    goto qfn;
-qfo:
-    if (mem[0])
-        goto qfd;
-    else
-        goto qes;
-qet:
-    mem[0] = 0;
-    goto qfp;
-qfe:
-    mem[0] = 1;
-    goto qfp;
-qeu:
-    goto qfu;
-nfq:
-    goto nen;
-neo:
-    goto nfr;
-nfs:
-    goto nep;
-nft:
-    goto neq;
-nfn:
-    if (mem[0])
-        goto nfc;
-    else
-        goto ner;
-nes:
-    mem[0] = 0;
-    goto nfo;
-nfd:
-    mem[0] = 1;
-    goto nfo;
-nfp:
-    if (mem[0])
-        goto nfe;
-    else
-        goto net;
-nfu:
-    goto neu;
-qf:
-     goto qi;
-ni:
-     goto qay;
-nay:
-     goto nf;
-qap:
-    mem[1] = 0;
-    goto qen;
-qeg:
-    mem[1] = 1;
-    goto qen;
-qeo:
-    if (mem[1])
-        goto qeh;
-    else
-        goto qaq;
-qar:
-    mem[1] = 0;
-    goto qep;
-qei:
-    mem[1] = 1;
-    goto qep;
-qas:
-    goto qeq;
-qat:
-    mem[1] = 0;
-    goto qer;
-qej:
-    mem[1] = 1;
-    goto qer;
-qes:
-    if (mem[1])
-        goto qek;
-    else
-        goto qau;
-qav:
-    mem[1] = 0;
-    goto qet;
-qel:
-    mem[1] = 1;
-    goto qet;
-qem:
-    goto qeu;
-nen:
-    if (mem[1])
-        goto neg;
-    else
-        goto nap;
-naq:
-    mem[1] = 0;
-    goto neo;
-neh:
-    mem[1] = 1;
-    goto neo;
-nep:
-    if (mem[1])
-        goto nei;
-    else
-        goto nar;
-neq:
-    goto nas;
-ner:
-    if (mem[1])
-        goto nej;
-    else
-        goto nat;
-nau:
-    mem[1] = 0;
-    goto nes;
-nek:
-    mem[1] = 1;
-    goto nes;
-net:
-    if (mem[1])
-        goto nel;
-    else
-        goto nav;
-neu:
-    goto nem;
-qi:
-     goto qn;
+    goto qk;
+nk:
+    goto nc;
+qg:
+    acc = 2;
+    goto ng;
+qh:
+    acc = 10;
+    goto nh;
+qk:
+    goto qn;
 nn:
-     goto qae;
-nae:
-     goto ni;
-qw:
-    goto qap;
-qaq:
-    goto qx;
-qy:
-    goto qar;
-qz:
-    goto qas;
-qam:
-    goto qat;
-qau:
-    goto qan;
-qao:
-    goto qav;
-nap:
-    goto nw;
-nx:
-    goto naq;
-nar:
-    goto ny;
-nas:
-    goto nz;
-nat:
-    goto nam;
-nan:
-    goto nau;
-nav:
-    goto nao;
-no:
-// dead-end
-qn:
-    goto qu;
-nu:
-    mem[3] = acc;
-    goto qq;
-qp:
-    acc = mem[3];
-    goto np;
-nq:
-    goto nn;
-qr:
-    goto qw;
-qx:
-    goto qs;
-qt:
-    goto qy;
-qv:
-    goto qz;
-nw:
-    goto nr;
-ns:
-    goto nx;
-ny:
-    goto nt;
-nz:
-    goto nv;
-qo:
-    goto qr;
-nr:
-    goto no;
-qs:
-    goto qp;
-np:
-    goto ns;
-qq:
-    goto qt;
-nt:
-    goto nq;
-qu:
-    goto qv;
-nv:
-    goto nu;
-naf:
-// dead-end
-qae:
-    goto qal;
-nal:
-    mem[5] = acc;
-    goto qah;
-qag:
-    acc = mem[5];
-    goto nag;
-nah:
-    goto nae;
-qai:
-    goto qam;
-qan:
-    goto qaj;
-qak:
-    goto qao;
-nam:
-    goto nai;
-naj:
-    goto nan;
-nao:
-    goto nak;
-qaf:
-    goto qai;
-nai:
-    goto naf;
-qaj:
-    goto qag;
-nag:
-    goto naj;
-qah:
-    goto qak;
-nak:
-    goto nah;
-qal:
-    acc = 1;
-    goto nal;
-qay:
-    goto qbc;
-nbc:
-    if (acc)
-        goto qbl;
-    else
-        goto nay;
-nbl:
-    goto qbc;
-qbg:
-    mem[7] = 0;
-    goto qeg;
-qdz:
-    mem[7] = 1;
-    goto qeg;
-qeh:
-    if (mem[7])
-        goto qea;
-    else
-        goto qbh;
-qbi:
-    mem[7] = 0;
-    goto qei;
-qeb:
-    mem[7] = 1;
-    goto qei;
-qec:
-    goto qej;
-qek:
-    goto qed;
-qee:
-    goto qel;
-qef:
-    goto qem;
-neg:
-    if (mem[7])
-        goto ndz;
-    else
-        goto nbg;
-nbh:
-    mem[7] = 0;
-    goto neh;
-nea:
-    mem[7] = 1;
-    goto neh;
-nei:
-    if (mem[7])
-        goto neb;
-    else
-        goto nbi;
-nej:
-    goto nec;
-ned:
-    goto nek;
-nel:
-    goto nee;
-nem:
-    goto nef;
-nbf:
-qbe:
-// dead-end
-qbc:
-    goto qbd;
-nbd:
-    goto nbc;
-qbd:
-    goto qbg;
-nbg:
-    goto nbd;
-qbh:
-    goto qbe;
-nbe:
-    goto nbh;
-qbf:
-    goto qbi;
-nbi:
-    goto nbf;
-qbl:
-     goto qbq;
-nbq:
-     goto qcy;
-ncy:
-     goto nbl;
-qdw:
-    goto qdz;
-qea:
-    goto qdx;
-qdy:
-    goto qeb;
-qcq:
-    goto qec;
-qed:
-    goto qcr;
-qcs:
-    goto qee;
-qct:
-    goto qef;
-ndz:
-    goto ndw;
-ndx:
-    goto nea;
-neb:
-    goto ndy;
-nec:
-    goto ncq;
-ncr:
-    goto ned;
-nee:
-    goto ncs;
-nef:
-    goto nct;
-nbr:
-// dead-end
-qbq:
-    goto qbz;
-nbz:
-    mem[9] = acc;
-    goto qbt;
-qbs:
-    acc = mem[9];
-    goto nbs;
-nbt:
-    goto nbq;
-qbu:
-    mem[10] = 0;
-    goto qcq;
-qcm:
-    mem[10] = 1;
-    goto qcq;
-qcr:
-    if (mem[10])
-        goto qcn;
-    else
-        goto qbv;
-qbw:
-    mem[10] = 0;
-    goto qcs;
-qco:
-    mem[10] = 1;
-    goto qcs;
-qcp:
-    goto qct;
-ncq:
-    if (mem[10])
-        goto ncm;
-    else
-        goto nbu;
-nbv:
-    mem[10] = 0;
-    goto ncr;
-ncn:
-    mem[10] = 1;
-    goto ncr;
-ncs:
-    if (mem[10])
-        goto nco;
-    else
-        goto nbw;
-nct:
-    goto ncp;
-qbr:
-    goto qbu;
-nbu:
-    goto nbr;
-qbv:
-    goto qbs;
-nbs:
-    goto nbv;
-qbt:
-    goto qbw;
-nbw:
-    goto nbt;
-qbz:
-    goto qcd;
-ncd:
-    mem[11] = acc;
-    goto qck;
-nck:
-    acc = mem[11] * acc;
-    goto nbz;
-qch:
-    goto qcm;
-qcn:
-    goto qci;
-qcj:
-    goto qco;
-qcl:
-    goto qcp;
-ncm:
-    goto nch;
-nci:
-    goto ncn;
-nco:
-    goto ncj;
-ncp:
-    goto ncl;
-ncg:
-qcf:
-// dead-end
-qcd:
-    goto qce;
-nce:
-    goto ncd;
-qce:
-    goto qch;
-nch:
-    goto nce;
-qci:
-    goto qcf;
-ncf:
-    goto nci;
-qcg:
-    goto qcj;
-ncj:
-    goto ncg;
-qck:
-    goto qcl;
-ncl:
-    goto nck;
-ncz:
-// dead-end
-qcy:
-    goto qdh;
-ndh:
-    mem[13] = acc;
-    goto qdb;
-qda:
-    acc = mem[13];
-    goto nda;
-ndb:
-    goto ncy;
-qdc:
-    mem[14] = 0;
-    goto qdw;
-qdt:
-    mem[14] = 1;
-    goto qdw;
-qdx:
-    if (mem[14])
-        goto qdu;
-    else
-        goto qdd;
-qde:
-    mem[14] = 0;
-    goto qdy;
-qdv:
-    mem[14] = 1;
-    goto qdy;
-ndw:
-    if (mem[14])
-        goto ndt;
-    else
-        goto ndc;
-ndd:
-    mem[14] = 0;
-    goto ndx;
-ndu:
-    mem[14] = 1;
-    goto ndx;
-ndy:
-    if (mem[14])
-        goto ndv;
-    else
-        goto nde;
-qcz:
-    goto qdc;
-ndc:
-    goto ncz;
-qdd:
-    goto qda;
-nda:
-    goto ndd;
-qdb:
-    goto qde;
-nde:
-    goto ndb;
-qdh:
-    goto qdl;
-ndl:
-    mem[15] = acc;
-    goto qds;
-nds:
-    acc = mem[15] - acc;
-    goto ndh;
-qdp:
-    goto qdt;
-qdu:
-    goto qdq;
-qdr:
-    goto qdv;
-ndt:
-    goto ndp;
-ndq:
-    goto ndu;
-ndv:
-    goto ndr;
-ndo:
-qdn:
-// dead-end
-qdl:
-    goto qdm;
-ndm:
-    goto ndl;
-qdm:
-    goto qdp;
-ndp:
-    goto ndm;
-qdq:
-    goto qdn;
-ndn:
-    goto ndq;
-qdo:
-    goto qdr;
-ndr:
-    goto ndo;
-qds:
-    acc = 1;
-    goto nds;
-nfb:
-qfa:
-// dead-end
+    goto qfg;
+nfg:
+    goto nk;
+qev:
+    goto qfy;
+nfy:
+    goto nev;
+qfz:
+    goto qew;
+new:
+    goto nfz;
+qex:
+    goto qga;
+nga:
+    goto nex;
 qey:
-    goto qez;
-nez:
+    goto qfq;
+nfq:
     goto ney;
 qez:
+    mem[0] = 0;
+    goto qfv;
+qfk:
+    mem[0] = 1;
+    goto qfv;
+nfv:
+    if (mem[0])
+        goto nfk;
+    else
+        goto nez;
+nfa:
+    mem[0] = 0;
+    goto nfw;
+nfl:
+    mem[0] = 1;
+    goto nfw;
+qfw:
+    if (mem[0])
+        goto qfl;
+    else
+        goto qfa;
+qfb:
+    mem[0] = 0;
+    goto qfx;
+qfm:
+    mem[0] = 1;
+    goto qfx;
+nfx:
+    if (mem[0])
+        goto nfm;
+    else
+        goto nfb;
+qfc:
+    goto qfu;
+nfu:
+    goto nfc;
+qn:
+    goto qq;
+nq:
+    goto qbg;
+nbg:
+    goto nn;
+qax:
+    mem[1] = 0;
+    goto qev;
+qeo:
+    mem[1] = 1;
+    goto qev;
+nev:
+    if (mem[1])
+        goto neo;
+    else
+        goto nax;
+nay:
+    mem[1] = 0;
+    goto new;
+nep:
+    mem[1] = 1;
+    goto new;
+qew:
+    if (mem[1])
+        goto qep;
+    else
+        goto qay;
+qaz:
+    mem[1] = 0;
+    goto qex;
+qeq:
+    mem[1] = 1;
+    goto qex;
+nex:
+    if (mem[1])
+        goto neq;
+    else
+        goto naz;
+qba:
+    goto qey;
+ney:
+    goto nba;
+qbb:
+    mem[1] = 0;
+    goto qez;
+qer:
+    mem[1] = 1;
+    goto qez;
+nez:
+    if (mem[1])
+        goto ner;
+    else
+        goto nbb;
+nbc:
+    mem[1] = 0;
+    goto nfa;
+nes:
+    mem[1] = 1;
+    goto nfa;
+qfa:
+    if (mem[1])
+        goto qes;
+    else
+        goto qbc;
+qbd:
+    mem[1] = 0;
+    goto qfb;
+qet:
+    mem[1] = 1;
+    goto qfb;
+nfb:
+    if (mem[1])
+        goto net;
+    else
+        goto nbd;
+qeu:
     goto qfc;
 nfc:
-    goto nez;
-qfd:
-    goto qfa;
-nfa:
-    goto nfd;
-qfb:
-    goto qfe;
-nfe:
-    goto nfb;
-qfn:
-    acc = mem[17];
-    goto nfn;
-qfp:
-    goto qfo;
-nfo:
-    mem[17] = acc;
-    goto nfp;
-qfq:
-    acc = mem[18];
-    goto nfq;
-qfs:
-    goto qfr;
-nfr:
-    mem[18] = acc;
-    goto nfs;
-qft:
-    acc = 10;
-    goto nft;
-qfu:
-    acc = 2;
-    goto nfu;
+    goto neu;
+qq:
+    goto qv;
+nv:
+    goto qam;
+nam:
+    goto nq;
+qae:
+    goto qax;
+nax:
+    goto nae;
+qay:
+    goto qaf;
+naf:
+    goto nay;
+qag:
+    goto qaz;
+naz:
+    goto nag;
+qah:
+    goto qba;
+nba:
+    goto nah;
+qau:
+    goto qbb;
+nbb:
+    goto nau;
+qbc:
+    goto qav;
+nav:
+    goto nbc;
+qaw:
+    goto qbd;
+nbd:
+    goto naw;
+nw:
+// dead-end
+qv:
+    goto qac;
+nac:
+    mem[3] = acc;
+    goto qy;
+qx:
+    acc = mem[3];
+    goto nx;
+ny:
+    goto nv;
+qz:
+    goto qae;
+nae:
+    goto nz;
+qaf:
+    goto qaa;
+naa:
+    goto naf;
+qab:
+    goto qag;
+nag:
+    goto nab;
+qad:
+    goto qah;
+nah:
+    goto nad;
+qw:
+    goto qz;
+nz:
+    goto nw;
+qaa:
+    goto qx;
+nx:
+    goto naa;
+qy:
+    goto qab;
+nab:
+    goto ny;
+qac:
+    goto qad;
+nad:
+    goto nac;
+nan:
+// dead-end
+qam:
+    goto qat;
+nat:
+    mem[5] = acc;
+    goto qap;
+qao:
+    acc = mem[5];
+    goto nao;
+nap:
+    goto nam;
+qaq:
+    goto qau;
+nau:
+    goto naq;
+qav:
+    goto qar;
+nar:
+    goto nav;
+qas:
+    goto qaw;
+naw:
+    goto nas;
+qan:
+    goto qaq;
+naq:
+    goto nan;
+qar:
+    goto qao;
+nao:
+    goto nar;
+qap:
+    goto qas;
+nas:
+    goto nap;
+qat:
+    acc = 1;
+    goto nat;
+qbg:
+    goto qbk;
+nbk:
+    if (acc)
+        goto qbt;
+    else
+        goto nbg;
+nbt:
+    goto qbk;
+qbo:
+    mem[6] = 0;
+    goto qeo;
+qeh:
+    mem[6] = 1;
+    goto qeo;
+neo:
+    if (mem[6])
+        goto neh;
+    else
+        goto nbo;
+nbp:
+    mem[6] = 0;
+    goto nep;
+nei:
+    mem[6] = 1;
+    goto nep;
+qep:
+    if (mem[6])
+        goto qei;
+    else
+        goto qbp;
+qbq:
+    mem[6] = 0;
+    goto qeq;
+qej:
+    mem[6] = 1;
+    goto qeq;
+neq:
+    if (mem[6])
+        goto nej;
+    else
+        goto nbq;
+qek:
+    goto qer;
+ner:
+    goto nek;
+qes:
+    goto qel;
+nel:
+    goto nes;
+qem:
+    goto qet;
+net:
+    goto nem;
+qen:
+    goto qeu;
+neu:
+    goto nen;
+nbn:
+qbm:
+// dead-end
+qbk:
+    goto qbl;
+nbl:
+    goto nbk;
+qbl:
+    goto qbo;
+nbo:
+    goto nbl;
+qbp:
+    goto qbm;
+nbm:
+    goto nbp;
+qbn:
+    goto qbq;
+nbq:
+    goto nbn;
+qbt:
+    goto qby;
+nby:
+    goto qdg;
+ndg:
+    goto nbt;
+qee:
+    goto qeh;
+neh:
+    goto nee;
+qei:
+    goto qef;
+nef:
+    goto nei;
+qeg:
+    goto qej;
+nej:
+    goto neg;
+qcy:
+    goto qek;
+nek:
+    goto ncy;
+qel:
+    goto qcz;
+ncz:
+    goto nel;
+qda:
+    goto qem;
+nem:
+    goto nda;
+qdb:
+    goto qen;
+nen:
+    goto ndb;
+nbz:
+// dead-end
+qby:
+    goto qch;
+nch:
+    mem[8] = acc;
+    goto qcb;
+qca:
+    acc = mem[8];
+    goto nca;
+ncb:
+    goto nby;
+qcc:
+    mem[9] = 0;
+    goto qcy;
+qcu:
+    mem[9] = 1;
+    goto qcy;
+ncy:
+    if (mem[9])
+        goto ncu;
+    else
+        goto ncc;
+ncd:
+    mem[9] = 0;
+    goto ncz;
+ncv:
+    mem[9] = 1;
+    goto ncz;
+qcz:
+    if (mem[9])
+        goto qcv;
+    else
+        goto qcd;
+qce:
+    mem[9] = 0;
+    goto qda;
+qcw:
+    mem[9] = 1;
+    goto qda;
+nda:
+    if (mem[9])
+        goto ncw;
+    else
+        goto nce;
+qcx:
+    goto qdb;
+ndb:
+    goto ncx;
+qbz:
+    goto qcc;
+ncc:
+    goto nbz;
+qcd:
+    goto qca;
+nca:
+    goto ncd;
+qcb:
+    goto qce;
+nce:
+    goto ncb;
+qch:
+    goto qcl;
+ncl:
+    mem[10] = acc;
+    goto qcs;
+ncs:
+    acc = mem[10] * acc;
+    goto nch;
+qcp:
+    goto qcu;
+ncu:
+    goto ncp;
+qcv:
+    goto qcq;
+ncq:
+    goto ncv;
+qcr:
+    goto qcw;
+ncw:
+    goto ncr;
+qct:
+    goto qcx;
+ncx:
+    goto nct;
+nco:
+qcn:
+// dead-end
+qcl:
+    goto qcm;
+ncm:
+    goto ncl;
+qcm:
+    goto qcp;
+ncp:
+    goto ncm;
+qcq:
+    goto qcn;
+ncn:
+    goto ncq;
+qco:
+    goto qcr;
+ncr:
+    goto nco;
+qcs:
+    goto qct;
+nct:
+    goto ncs;
+ndh:
+// dead-end
+qdg:
+    goto qdp;
+ndp:
+    mem[12] = acc;
+    goto qdj;
+qdi:
+    acc = mem[12];
+    goto ndi;
+ndj:
+    goto ndg;
+qdk:
+    mem[13] = 0;
+    goto qee;
+qeb:
+    mem[13] = 1;
+    goto qee;
+nee:
+    if (mem[13])
+        goto neb;
+    else
+        goto ndk;
+ndl:
+    mem[13] = 0;
+    goto nef;
+nec:
+    mem[13] = 1;
+    goto nef;
+qef:
+    if (mem[13])
+        goto qec;
+    else
+        goto qdl;
+qdm:
+    mem[13] = 0;
+    goto qeg;
+qed:
+    mem[13] = 1;
+    goto qeg;
+neg:
+    if (mem[13])
+        goto ned;
+    else
+        goto ndm;
+qdh:
+    goto qdk;
+ndk:
+    goto ndh;
+qdl:
+    goto qdi;
+ndi:
+    goto ndl;
+qdj:
+    goto qdm;
+ndm:
+    goto ndj;
+qdp:
+    goto qdt;
+ndt:
+    mem[14] = acc;
+    goto qea;
+nea:
+    acc = mem[14] - acc;
+    goto ndp;
+qdx:
+    goto qeb;
+neb:
+    goto ndx;
+qec:
+    goto qdy;
+ndy:
+    goto nec;
+qdz:
+    goto qed;
+ned:
+    goto ndz;
+ndw:
+qdv:
+// dead-end
+qdt:
+    goto qdu;
+ndu:
+    goto ndt;
+qdu:
+    goto qdx;
+ndx:
+    goto ndu;
+qdy:
+    goto qdv;
+ndv:
+    goto ndy;
+qdw:
+    goto qdz;
+ndz:
+    goto ndw;
+qea:
+    acc = 1;
+    goto nea;
+nfj:
+qfi:
+// dead-end
+qfg:
+    goto qfh;
+nfh:
+    goto nfg;
+qfh:
+    goto qfk;
+nfk:
+    goto nfh;
+qfl:
+    goto qfi;
+nfi:
+    goto nfl;
+qfj:
+    goto qfm;
+nfm:
+    goto nfj;
+qfv:
+    acc = mem[15];
+    goto nfv;
+qfx:
+    goto qfw;
+nfw:
+    mem[15] = acc;
+    goto nfx;
+qfy:
+    acc = mem[16];
+    goto nfy;
+qga:
+    goto qfz;
+nfz:
+    mem[16] = acc;
+    goto nga;
 
 nc:
     printf("%d\n", acc);

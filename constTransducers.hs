@@ -3,6 +3,8 @@ module ConstTransducers where
 import qualified Data.Map    as M ((!))
 import           Definitions
 import           Text.Printf (printf)
+import           Utils       (closedSig, getFreshInt, prepend, refType, copyCat)
+
 
 numberCode :: Int -> CodePrinter
 numberCode d Transducer{outputWire = WPort (q, n)} =
@@ -62,32 +64,6 @@ whileCode Transducer{outputWire = WArrow (WTimes (WPort (qc, nc)) (WPort (qa, na
 \%s:\n\
 \    goto %s;\n" qr qc nc qa nr na qc
 
-wireToList :: Bool -> Wire -> [((Label, Label), Bool)]
-wireToList f (WPort p) = [(p, f)]
-wireToList f (WTimes w1 w2) = wireToList f w1 ++ wireToList f w2
-wireToList f (WArrow w1 w2) = wireToList (not f) w1 ++ wireToList f w2
-
-connect :: ((Label, Label), Bool) -> ((Label, Label), Bool) -> String
-connect ((q, n), False) ((q', n'), _) = printf "\
-\%s:\n\
-\    goto %s;\n\
-\%s:\n\
-\    goto %s;\n" q q' n' n
-
-connect ((q, n), True) ((q', n'), _) = printf "\
-\%s:\n\
-\    goto %s;\n\
-\%s:\n\
-\    goto %s;\n" q' q n n'
-
-connectWires :: Wire -> Wire -> String
-connectWires w1 w2 = concat $ zipWith connect (wireToList False w1) (wireToList False w2)
-
-variableCode :: String -> CodePrinter
-variableCode s Transducer{inputWires = inpWs, outputWire = outW} =
-    let inpW = inpWs M.! s
-    in return $ prepend $ connectWires outW inpW
-
 newVarCode :: CodePrinter
 newVarCode Transducer{outputWire = WTimes (WPort (qr, nr)) (WArrow (WPort (qv, nv)) (WPort (qw, nw)))} = do
     i <- getFreshInt
@@ -129,6 +105,11 @@ assignCode Transducer{outputWire = WArrow (WTimes (WTimes (WPort (qr, nr)) (WArr
 \%s:\n\
 \    goto %s;\n" nr qa qv nv i qw qx i nx nw na
 
+variableCode :: String -> CodePrinter
+variableCode s Transducer{inputWires = inpWs, outputWire = outW} =
+    let inpW = inpWs M.! s
+    in return $ copyCat outW inpW
+
 
 numberDescr :: Int -> TransducerDescr
 numberDescr n = (numberCode n, closedSig N)
@@ -146,10 +127,10 @@ whileDescr :: TransducerDescr
 whileDescr = (whileCode, closedSig (Arrow (Times N N) N))
 
 newVarDescr :: TransducerDescr
-newVarDescr = (newVarCode, closedSig (Times N (Arrow N N)))
+newVarDescr = (newVarCode, closedSig refType)
 
 derefDescr :: TransducerDescr
-derefDescr = (derefCode, closedSig (Arrow (Times N (Arrow N N)) N))
+derefDescr = (derefCode, closedSig (Arrow refType N))
 
 assignDescr :: TransducerDescr
-assignDescr = (assignCode, closedSig (Arrow (Times (Times N (Arrow N N)) N) N))
+assignDescr = (assignCode, closedSig (Arrow (Times refType N) N))

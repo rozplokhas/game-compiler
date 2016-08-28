@@ -2,6 +2,7 @@ module Transducer where
 
 import           Definitions
 import           Text.Printf (printf)
+import           Utils       (getFreshInt, getFreshString)
 
 wireByType :: Type -> EvalState Wire
 wireByType N = do
@@ -46,8 +47,7 @@ generateCode tr = do
 \int main(void) {\n\
 \    int acc = 0;\n\
 \    static int mem[%d];\n\
-\    goto %s;\n\
-\ \n\
+\    goto %s;\n\n\
 \%s\n\
 \%s:\n\
 \    %s\n\

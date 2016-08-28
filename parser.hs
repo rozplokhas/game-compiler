@@ -7,6 +7,7 @@ import           Data.Char           (isAlpha, isDigit, isLower, isSpace,
 import           Data.List           (find)
 import           Data.Maybe          (isJust)
 import           Definitions
+import           Utils               (evalError)
 
 operators :: String
 operators = "():!+-*/%<>;=\\"
@@ -250,5 +251,5 @@ nipN _               = fail ""
 parse :: String -> EvalState AST
 parse text = do
     ts <- tokenize text
-    case nipProg ts of Just (ast, []) -> return ast 
+    case nipProg ts of Just (ast, []) -> return ast
                        otherwise      -> evalError "Syntax error"
