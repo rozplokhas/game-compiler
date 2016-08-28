@@ -1,0 +1,1 @@
+A translator from Serially Reentrant Idealized Algol (typed λ-calculus + arithmetic + references + loops) to simple C (using only goto, arithmetic, if-else) based on transducer semantics.
