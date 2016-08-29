@@ -1,11 +1,12 @@
 module Optimizer (optimize) where
 
-import qualified Data.Map    as M (Map, empty, insert, adjust, keys, member, notMember,
-                                   (!), foldrWithKey, filter, filterWithKey, map, fromList)
-import           Definitions (Label, EvalState)
-import qualified Data.Set as S (Set, empty, insert, member, notMember, elems)
-import Utils (evalError, prepend, runEval)
-import Text.Printf (printf)
+import qualified Data.Map    as M (Map, adjust, empty, filter, filterWithKey,
+                                   foldrWithKey, fromList, insert, keys, map,
+                                   member, notMember, (!))
+import qualified Data.Set    as S (Set, elems, empty, insert, member, notMember)
+import           Definitions (EvalState, Label)
+import           Text.Printf (printf)
+import           Utils       (evalError, prepend, runEval)
 
 
 data Edge = Empty Label
@@ -16,7 +17,7 @@ data Edge = Empty Label
 type Edges = M.Map Label Edge
 
 data Graph = Graph {
-    edges  :: Edges, 
+    edges  :: Edges,
     start  :: Label,
     finish :: Label
 } deriving (Eq, Show)
@@ -42,7 +43,7 @@ buildGraph' ([] : ss) = getFinish (dropWhile null ss)
 buildGraph' (ws : ws2 : ss) | head ws2 == "goto" = let g = buildGraph' ss
                                                    in insertEdge label (Empty $ labelFromGoto ws2) g
                             | head ws2 == "if"   = let (ts : _ : es : rs, g) = (ss, buildGraph' rs)
-                                                   in insertEdge label (Choise (init $ tail $ ws2 !! 1) 
+                                                   in insertEdge label (Choise (init $ tail $ ws2 !! 1)
                                                                                (labelFromGoto ts) (labelFromGoto es)) g
                             | otherwise          = let (gs : rs, g) = (ss, buildGraph' rs)
                                                    in insertEdge label (Substantive (unwords ws2) (labelFromGoto gs)) g
@@ -59,7 +60,7 @@ graphFromString str = let (hd, rest) = spanHead (lines str)
 
 revEdges :: Graph -> M.Map Label [Label]
 revEdges Graph{edges = es} = M.foldrWithKey upd M.empty es
-    where 
+    where
         upd k (Empty v)         m = addEdge v k m
         upd k (Substantive _ v) m = addEdge v k m
         upd k (Choise _ t f)    m = addEdge t k $ addEdge f k m
@@ -69,7 +70,7 @@ finishing :: Graph -> S.Set Label
 finishing g = dfs (finish g) S.empty
     where
         rEdges = revEdges g
-        
+
         dfs :: Label -> S.Set Label -> S.Set Label
         dfs v visited | v `S.member`   visited = visited
                       | v `M.notMember` rEdges = S.insert v visited
@@ -95,7 +96,7 @@ constrict em = foldr (\v e -> snd $ findRoot e v) em $ M.keys em
 
 newName :: Edges -> Label -> Label
 newName em l | l `M.notMember` em = l
-             | otherwise          = case em M.! l of Empty u -> u
+             | otherwise          = case em M.! l of Empty u   -> u
                                                      otherwise -> l
 
 rename :: Edges -> Edges
@@ -114,7 +115,7 @@ delEmpties (Graph em st fin) = let em' = constrict em
 
 printGraph :: String -> Graph -> EvalState String
 printGraph hd (Graph em st fin) =
-    if st `M.notMember` em 
+    if st `M.notMember` em
     then
         evalError "Your program will not terminate"
     else
@@ -127,11 +128,11 @@ printGraph hd (Graph em st fin) =
 \}\n" fin "printf(\"%d\\n\", acc);"
     where
         printEdges = M.foldrWithKey (\k e acc -> prependEdge k e . acc) id em ""
-        
+
         prependEdge k (Empty l) = prepend $ printf "\
 \%s:\n\
 \    goto %s;\n" k l
-        
+
         prependEdge k (Substantive inf l) = prepend $ printf "\
 \%s:\n\
 \    %s\n\
@@ -171,10 +172,3 @@ optimize prog = do
     let (hd, gr) = graphFromString prog
     opt <- printGraph hd (delEmpties $ onlyFinishing gr)
     return $ fitIndices opt
-
-main :: IO ()
-main = do
-    (hd, gr) <- graphFromString <$> readFile "good_example.c"
-    -- let (root, e') = findRoot (edges gr) "nay"
-    let text = (\(Right x) -> x) $ runEval $ printGraph hd (delEmpties $ onlyFinishing gr)
-    writeFile "other.c" (fitIndices text)

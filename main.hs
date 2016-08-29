@@ -1,12 +1,12 @@
 module Main where
 
-import Parser
-import Transform
-import Transducer (generateCode)
-import System.Environment (getArgs)
-import Utils (runEval)
-import Data.List (findIndices)
-import Optimizer
+import           Data.List          (findIndices)
+import           Optimizer
+import           Parser
+import           System.Environment (getArgs)
+import           Transducer         (generateCode)
+import           Transform
+import           Utils              (runEval)
 
 cutExtention :: String -> String
 cutExtention s = case findIndices (== '.') s of [] -> s
@@ -17,7 +17,7 @@ main = do
     args <- getArgs
     case args of [fileName] -> normalWay fileName
                  otherwise  -> putStrLn "Programm expects one argument"
-    where 
+    where
         normalWay fileName = do
             text <- readFile fileName
             let pr = parse text

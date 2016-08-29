@@ -19,7 +19,7 @@
                               | <sum> '<=' <sum> | <sum> '>=' <sum>
 
 <sum>               ::= <product> | <product> '+' <sum> | <product> '-' <sum>
-<product>           ::= <application> | <application> '*' <producr> 
+<product>           ::= <application> | <application> '*' <product> 
                                       | <application> '/' <product> 
                                       | <application> '%' <product>
 

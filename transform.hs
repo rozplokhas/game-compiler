@@ -41,9 +41,9 @@ buildTransducer' context (LApp f x) = do
     xt <- buildTransducer' context x
     applicationRule ft xt
 
-buildTransducer' context (LAbs (x, t) m) = do
+buildTransducer' context (LAbs v@(x, t) m) = do
     mt <- buildTransducer' (insert x t context) m
-    abstractionRule x mt
+    abstractionRule v mt
 
 buildTransducer' context (LProduct a b) = do
     at <- buildTransducer' context a

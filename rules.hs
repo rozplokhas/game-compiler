@@ -21,12 +21,16 @@ productRule tx ty = do
                                                             (code tx tr{inputWires = inputWires tx, outputWire = wx})
                                                             (code ty tr{inputWires = inputWires ty, outputWire = wy})
 
-abstractionRule :: String -> Transducer -> EvalState Transducer
-abstractionRule v t = return $ Transducer inp outp printer
+abstractionRule :: Variable -> Transducer -> EvalState Transducer
+abstractionRule (vn, vt) t = do
+    w <- wireState
+    return $ Transducer inp (outp w) printer
     where
-        inp = M.delete v (inputWires t)
-        outp = WArrow (inputWires t M.! v) (outputWire t)
-        printer tr@(Transducer inpW (WArrow wx wm) _) = code t tr{inputWires = M.insert v wx inpW, outputWire = wm}
+        inp = M.delete vn (inputWires t)
+        outp wire = WArrow wire (outputWire t)
+        wireState | vn `M.member` inputWires t = return $ inputWires t M.! vn
+                  | otherwise                  = wireByType vt 
+        printer tr@(Transducer inpW (WArrow wx wm) _) = code t tr{inputWires = M.insert vn wx inpW, outputWire = wm}
 
 
 applicationRule :: Transducer -> Transducer -> EvalState Transducer
