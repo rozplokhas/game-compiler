@@ -4,7 +4,7 @@ import           Control.Monad.Except     (throwError)
 import           Control.Monad.State.Lazy (evalStateT, get, put)
 import qualified Data.Map                 as M (empty)
 import           Definitions
-import Text.Printf (printf)
+import           Text.Printf              (printf)
 
 
 closedSig :: Type -> Signature

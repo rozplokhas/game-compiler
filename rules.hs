@@ -6,7 +6,8 @@ import qualified Data.Map      as M (Map, delete, insert, intersection, keys,
 import           Definitions
 import           Text.Printf   (printf)
 import           Transducer
-import           Utils         (copyCat, evalError, getFreshInt, prepend, typesMatch)
+import           Utils         (copyCat, evalError, getFreshInt, prepend,
+                                typesMatch)
 
 
 productRule :: Transducer -> Transducer -> EvalState Transducer
@@ -29,13 +30,13 @@ abstractionRule (vn, vt) t = do
         inp = M.delete vn (inputWires t)
         outp wire = WArrow wire (outputWire t)
         wireState | vn `M.member` inputWires t = return $ inputWires t M.! vn
-                  | otherwise                  = wireByType vt 
+                  | otherwise                  = wireByType vt
         printer tr@(Transducer inpW (WArrow wx wm) _) = code t tr{inputWires = M.insert vn wx inpW, outputWire = wm}
 
 
 applicationRule :: Transducer -> Transducer -> EvalState Transducer
 applicationRule tf tx = do
-    case (outputWire tf, outputWire tx) of 
+    case (outputWire tf, outputWire tx) of
         (WArrow w1 w2, wx) -> if typesMatch w1 wx
                                 then result
                                 else err
@@ -84,8 +85,8 @@ template = "\
 switcher :: M.Map String Wire -> M.Map String Wire -> M.Map String Wire -> EvalState ShowS
 switcher sharedC leftC rightC | null sharedC = return id
                               | null leftC   = return $ foldr (.) id $ map (\x -> copyCat (rightC M.! x) (sharedC M.! x)) $ M.keys rightC
-                              | null rightC  = return $ foldr (.) id $ map (\x -> copyCat (leftC  M.! x) (sharedC M.! x)) $ M.keys leftC 
-                              | otherwise    = do 
+                              | null rightC  = return $ foldr (.) id $ map (\x -> copyCat (leftC  M.! x) (sharedC M.! x)) $ M.keys leftC
+                              | otherwise    = do
     i <- getFreshInt
     return $ foldr (.) id $ map (helper i) $ M.keys sharedC
     where

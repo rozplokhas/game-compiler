@@ -3,7 +3,7 @@ module ConstTransducers where
 import qualified Data.Map    as M ((!))
 import           Definitions
 import           Text.Printf (printf)
-import           Utils       (closedSig, getFreshInt, prepend, refType, copyCat)
+import           Utils       (closedSig, copyCat, getFreshInt, prepend, refType)
 
 
 numberCode :: Int -> CodePrinter
