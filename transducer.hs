@@ -42,8 +42,7 @@ generateCode tr = do
     n <- getFreshInt
     let WPort (qr, nr) = outputWire tr
     return $ printf "\
-\#include <stdio.h>\n\
-\ \n\
+\#include <stdio.h>\n\n\
 \int main(void) {\n\
 \    int acc = 0;\n\
 \    static int mem[%d];\n\

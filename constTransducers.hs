@@ -81,19 +81,14 @@ derefCode :: CodePrinter
 derefCode Transducer{outputWire = WArrow (WTimes (WPort (qr, nr)) (WArrow (WPort (qv, nv)) (WPort (qw, nw)))) (WPort (qa, na))} =
     return $ prepend $ printf "\
 \%s:\n\
-\%s:\n\
-\// dead-end\n\
-\%s:\n\
 \    goto %s;\n\
 \%s:\n\
-\    goto %s;\n" nw qv qa qr nr na
+\    goto %s;\n" qa qr nr na
 
 assignCode :: CodePrinter
 assignCode Transducer{outputWire = WArrow (WTimes (WTimes (WPort (qr, nr)) (WArrow (WPort (qx, nx)) (WPort (qw, nw)))) (WPort (qv, nv))) (WPort (qa, na))} = do
     i <- getFreshInt
     return $ prepend $ printf "\
-\%s:\n\
-\// dead-end\n\
 \%s:\n\
 \    goto %s;\n\
 \%s:\n\
@@ -103,7 +98,7 @@ assignCode Transducer{outputWire = WArrow (WTimes (WTimes (WPort (qr, nr)) (WArr
 \    acc = mem[%d];\n\
 \    goto %s;\n\
 \%s:\n\
-\    goto %s;\n" nr qa qv nv i qw qx i nx nw na
+\    goto %s;\n" qa qv nv i qw qx i nx nw na
 
 variableCode :: String -> CodePrinter
 variableCode s Transducer{inputWires = inpWs, outputWire = outW} =

@@ -14,7 +14,9 @@ let fib : N->N = \n:N ->
     new d0 in
     new d1 in
     new i  in
+    d0 := 0;
     d1 := 1;
+    i := 0;
     while !i != n do (
         d1 := !d0 + !d1;
         d0 := !d1 - !d0;
@@ -30,8 +32,10 @@ in
 let diverge : N = while 1 do 0
 in
 
-let checkTrue : N->N = \t:N ->
+let assertTrue : N->N = \t:N ->
     if t then 0 else diverge
 in
 
-checkTrue (pow 2 10 == 1024); checkTrue (4 - 2 * 0 - 1 - 1 == 2); fib (apply_to_2 (pow 4))
+assertTrue (pow 2 10 == 1024);
+assertTrue (4 - 2 * 0 - 1 - 1 == 2);
+fib (apply_to_2 (pow 4))
